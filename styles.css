@@ -1,0 +1,680 @@
+/* Minecraft-themed styles */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+body {
+    background-color: #5c8233; /* Darker grass color */
+    color: #fff;
+    font-family: 'Press Start 2P', cursive;
+    line-height: 1.6;
+    padding: 20px;
+    overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
+}
+
+.apps-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: #3b8526;
+    color: #fff;
+    padding: 10px 16px;
+    border: 3px solid #000;
+    box-shadow: 3px 3px 0 #000;
+    text-decoration: none;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: transform 0.1s, box-shadow 0.1s;
+    z-index: 2;
+}
+
+.apps-button:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 #000;
+}
+
+.apps-button:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+}
+
+.apps-button.back-button {
+    right: 20px;
+    left: auto;
+}
+
+.apps-page {
+    background: linear-gradient(135deg, #3b6f25 0%, #5c8233 40%, #2b4b16 100%);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 100px;
+}
+
+.apps-container {
+    text-align: center;
+    width: 100%;
+    max-width: 960px;
+}
+
+.apps-intro {
+    margin-bottom: 2rem;
+    color: #d7f3c2;
+    font-size: 0.9rem;
+}
+
+.apps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.app-card {
+    background: rgba(198, 198, 198, 0.95);
+    border: 3px solid #8b8b8b;
+    border-image: url('https://i.imgur.com/1UqXo3y.png') 3 stretch;
+    padding: 40px 20px;
+    text-decoration: none;
+    color: #000;
+    box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px #8b8b8b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+}
+
+.app-card i {
+    font-size: 2.5rem;
+    color: #ffaa00;
+}
+
+.app-card h2 {
+    font-size: 1.1rem;
+    color: #000;
+    text-shadow: 1px 1px 0 #fff;
+}
+
+.app-card p {
+    font-size: 0.75rem;
+    color: #333;
+}
+
+.app-card:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 4px 4px 0 #000, 6px 6px 0 #8b8b8b;
+}
+
+.app-card.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.minecraft-character {
+    position: fixed;
+    bottom: 40px;
+    left: -100px;
+    z-index: 0;
+    transform-origin: center bottom;
+    width: 40px;
+    height: 70px;
+    cursor: pointer;
+}
+
+.speech-bubble {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%) scale(0);
+    background: #fff;
+    color: #000;
+    padding: 8px 12px;
+    border: 2px solid #000;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    opacity: 0;
+    transition: all 0.2s ease-in-out;
+    transform-origin: bottom center;
+}
+
+.speech-bubble.show {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+}
+
+.speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #000;
+}
+
+.minecraft-character.moving {
+    animation: bob 0.4s infinite ease-in-out;
+}
+
+.villager-head {
+    width: 32px;
+    height: 32px;
+    background: #f7d19d;
+    border: 2px solid #000;
+    position: relative;
+    margin: 0 auto;
+}
+
+.face::before {
+    content: '';
+    position: absolute;
+    width: 4px;
+    height: 8px;
+    background: #2c732e;
+    top: 12px;
+    left: 6px;
+    box-shadow: 12px 0 0 #2c732e;
+}
+
+.face::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 10px;
+    background: #a36b46;
+    top: 12px;
+    left: 12px;
+}
+
+.robe {
+    width: 40px;
+    height: 38px;
+    background: #7a4b36;
+    border: 2px solid #000;
+    border-top: none;
+    position: relative;
+    margin-top: -2px;
+}
+
+.arms {
+    position: absolute;
+    width: 44px;
+    height: 10px;
+    background: #7a4b36;
+    top: 2px;
+    left: -2px;
+    border-top: 2px solid #000;
+    border-bottom: 2px solid #000;
+}
+
+@keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 4px solid #8b8b8b;
+    border-image: url('https://i.imgur.com/1UqXo3y.png') 4 stretch;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 1;
+}
+
+h1 {
+    text-align: center;
+    color: #ffaa00; /* Minecraft gold color */
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+    text-shadow: 3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    letter-spacing: 2px;
+}
+
+/* Task input section */
+.task-input {
+    background: #c6c6c6; /* Minecraft stone color */
+    padding: 15px;
+    border: 3px solid #8b8b8b; /* Minecraft stone border */
+    border-image: url('https://i.imgur.com/1UqXo3y.png') 3 stretch;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px #8b8b8b;
+}
+
+#taskInput, .timer-input input {
+    background: #fff;
+    border: 2px solid #8b8b8b;
+    padding: 10px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    color: #000;
+    outline: none;
+    box-shadow: inset 0 0 0 2px #000;
+    min-height: 40px;
+}
+
+#taskInput {
+    flex: 1;
+    min-width: 200px;
+}
+
+.timer-input {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: #c6c6c6;
+    padding: 5px;
+    border: 2px solid #8b8b8b;
+    box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px #8b8b8b;
+}
+
+.timer-input input {
+    width: 50px;
+    text-align: center;
+    padding: 5px;
+}
+
+button {
+    background: #8b8b8b;
+    color: #fff;
+    border: 2px solid #000;
+    padding: 10px 15px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.7rem;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 4px 2px;
+    transition: all 0.1s;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 2px 2px 0 #000;
+}
+
+button:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+}
+
+button:hover {
+    background: #9a9a9a;
+}
+
+#addBtn {
+    background: #4caf50; /* Minecraft green */
+    color: #fff;
+}
+
+#addBtn:hover {
+    background: #5cbf60;
+}
+
+/* Filters */
+.filters {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background: #8b8b8b;
+    color: #fff;
+    padding: 8px 12px;
+    font-size: 0.7rem;
+}
+
+.filter-btn.active {
+    background: #ffaa00; /* Minecraft gold */
+    color: #000;
+}
+
+/* Task list */
+#taskList {
+    list-style: none;
+}
+
+.task-item {
+    background: #c6c6c6;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border: 3px solid #8b8b8b;
+    border-image: url('https://i.imgur.com/1UqXo3y.png') 3 stretch;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px #8b8b8b;
+    transition: transform 0.1s;
+}
+
+.task-item:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 2px 2px 0 #000, 4px 4px 0 #8b8b8b;
+}
+
+.task-info {
+    flex: 1;
+    margin-right: 1rem;
+}
+
+.task-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #000;
+    font-size: 0.9rem;
+}
+
+.task-timer {
+    font-size: 0.7rem;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.task-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.task-actions button {
+    padding: 5px 8px;
+    min-width: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.start-btn {
+    background: #4a8ec7; /* Minecraft blue */
+}
+
+.complete-btn {
+    background: #4caf50; /* Minecraft green */
+}
+
+.delete-btn {
+    background: #b02e26; /* Minecraft red */
+}
+
+.completed {
+    opacity: 0.7;
+}
+
+.completed .task-title {
+    text-decoration: line-through;
+    color: #666;
+}
+
+.completed .task-timer {
+    color: #888;
+}
+
+/* Timer Modal */
+.timer-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.timer-content {
+    background: #c6c6c6;
+    padding: 30px;
+    border: 4px solid #8b8b8b;
+    border-image: url('https://i.imgur.com/1UqXo3y.png') 4 stretch;
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+    box-shadow: 0 0 0 3px #000, 0 0 0 6px #8b8b8b, 0 0 0 9px #000;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.5rem;
+    background: none;
+    color: #b02e26;
+    padding: 5px;
+    line-height: 1;
+    border: none;
+    cursor: pointer;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.close-btn:hover {
+    color: #ff1f1f;
+}
+
+#currentTask {
+    color: #ffaa00;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 0 #000;
+    font-size: 1.2rem;
+}
+
+.time-display {
+    font-size: 3.5rem;
+    font-weight: bold;
+    margin: 1.5rem 0;
+    font-family: 'Press Start 2P', cursive;
+    color: #fff;
+    text-shadow: 3px 3px 0 #000;
+    background: #000;
+    padding: 15px;
+    border: 4px solid #8b8b8b;
+    box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 6px #8b8b8b;
+}
+
+.timer-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.timer-controls button {
+    min-width: 100px;
+    justify-content: center;
+    padding: 10px 15px;
+    font-size: 0.8rem;
+}
+
+#completeBtn {
+    background: #4caf50;
+}
+
+#resetBtn {
+    background: #8b8b8b;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    .task-input {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .timer-input {
+        justify-content: center;
+    }
+    
+    .filters {
+        gap: 5px;
+    }
+    
+    .filter-btn {
+        padding: 5px 8px;
+        font-size: 0.6rem;
+    }
+    
+    .time-display {
+        font-size: 2.5rem;
+    }
+    
+    .timer-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .timer-controls button {
+        width: 100%;
+    }
+}
+
+/* Tax Computer */
+.tax-container {
+    margin-top: 40px;
+}
+
+.tax-inputs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    background: rgba(198, 198, 198, 0.9);
+    border: 3px solid #8b8b8b;
+    border-image: url('https://i.imgur.com/1UqXo3y.png') 3 stretch;
+    padding: 20px;
+    margin-bottom: 2rem;
+    box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px #8b8b8b;
+}
+
+.tax-field {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tax-field label {
+    color: #000;
+    font-size: 0.75rem;
+}
+
+.tax-field input {
+    background: #fff;
+    border: 2px solid #8b8b8b;
+    padding: 12px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    color: #000;
+    box-shadow: inset 0 0 0 2px #000;
+}
+
+.tax-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.tax-summary {
+    background: rgba(0, 0, 0, 0.6);
+    border: 4px solid #8b8b8b;
+    border-image: url('https://i.imgur.com/1UqXo3y.png') 4 stretch;
+    padding: 20px;
+    margin-bottom: 2rem;
+    text-align: left;
+}
+
+.tax-summary h2,
+.tax-reference h2 {
+    color: #ffaa00;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 0 #000;
+    text-align: center;
+}
+
+.tax-summary ul {
+    list-style: none;
+    display: grid;
+    gap: 12px;
+}
+
+.tax-summary li {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 0.75rem;
+}
+
+.tax-summary span {
+    color: #d7f3c2;
+}
+
+.tax-reference {
+    background: rgba(198, 198, 198, 0.9);
+    border: 3px solid #8b8b8b;
+    border-image: url('https://i.imgur.com/1UqXo3y.png') 3 stretch;
+    padding: 20px;
+    box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px #8b8b8b;
+}
+
+.tax-reference table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.7rem;
+}
+
+.tax-reference th,
+.tax-reference td {
+    border: 2px solid #8b8b8b;
+    padding: 10px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.85);
+    color: #000;
+}
+
+.tax-reference th {
+    background: #ffaa00;
+    color: #000;
+}
+
+@media (max-width: 768px) {
+    .apps-page {
+        padding-top: 80px;
+        padding-bottom: 40px;
+    }
+
+    .tax-summary li {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

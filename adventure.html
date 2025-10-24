@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Computer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="apps-page">
+    <a href="index.html" class="apps-button back-button">Home</a>
+
+    <div class="container apps-container tax-container">
+        <h1>Tax Computer</h1>
+        <p class="apps-intro">Estimate your annual Philippine income tax based on your salary.</p>
+
+        <div class="tax-inputs">
+            <div class="tax-field">
+                <label for="annualIncome">Annual Income (PHP)</label>
+                <input type="number" id="annualIncome" placeholder="e.g., 450000">
+            </div>
+            <div class="tax-field">
+                <label for="monthlyIncome">Monthly Income (PHP)</label>
+                <input type="number" id="monthlyIncome" placeholder="e.g., 37500">
+            </div>
+            <div class="tax-field">
+                <label for="monthlyTaxInput">Monthly Tax Paid (PHP)</label>
+                <input type="number" id="monthlyTaxInput" placeholder="e.g., 5000">
+            </div>
+            <div class="tax-buttons">
+                <button id="computeTaxBtn"><i class="fas fa-calculator"></i> Compute Tax</button>
+                <button id="computeIncomeBtn"><i class="fas fa-exchange-alt"></i> Estimate Income</button>
+                <button id="resetTaxBtn"><i class="fas fa-redo"></i> Reset</button>
+            </div>
+        </div>
+
+        <div class="tax-summary" id="taxSummary" hidden>
+            <h2>Summary</h2>
+            <ul>
+                <li><span>Taxable Income:</span> <strong id="taxableIncome">PHP 0.00</strong></li>
+                <li><span>Annual Tax Due:</span> <strong id="annualTax">PHP 0.00</strong></li>
+                <li><span>Effective Tax Rate:</span> <strong id="effectiveRate">0%</strong></li>
+                <li><span>Monthly Tax Equivalent:</span> <strong id="monthlyTax">PHP 0.00</strong></li>
+                <li><span>Income Bracket:</span> <strong id="incomeBracket">N/A</strong></li>
+            </ul>
+        </div>
+
+        <div class="tax-summary" id="incomeSummary" hidden>
+            <h2>Income Estimate from Tax</h2>
+            <ul>
+                <li><span>Monthly Tax Input:</span> <strong id="derivedMonthlyTax">PHP 0.00</strong></li>
+                <li><span>Estimated Annual Income:</span> <strong id="derivedAnnualIncome">PHP 0.00</strong></li>
+                <li><span>Estimated Monthly Income:</span> <strong id="derivedMonthlyIncome">PHP 0.00</strong></li>
+                <li><span>Estimated Income Bracket:</span> <strong id="derivedIncomeBracket">N/A</strong></li>
+            </ul>
+        </div>
+
+        <div class="tax-reference">
+            <h2>Current TRAIN Law Brackets</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Taxable Income Range (PHP)</th>
+                        <th>Base Tax + Percentage of Excess</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Up to 250,000</td>
+                        <td>0</td>
+                    </tr>
+                    <tr>
+                        <td>Over 250,000 to 400,000</td>
+                        <td>20% of excess over 250,000</td>
+                    </tr>
+                    <tr>
+                        <td>Over 400,000 to 800,000</td>
+                        <td>30,000 + 25% of excess over 400,000</td>
+                    </tr>
+                    <tr>
+                        <td>Over 800,000 to 2,000,000</td>
+                        <td>130,000 + 30% of excess over 800,000</td>
+                    </tr>
+                    <tr>
+                        <td>Over 2,000,000 to 8,000,000</td>
+                        <td>490,000 + 32% of excess over 2,000,000</td>
+                    </tr>
+                    <tr>
+                        <td>Over 8,000,000</td>
+                        <td>2,410,000 + 35% of excess over 8,000,000</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const annualIncomeInput = document.getElementById('annualIncome');
+            const monthlyIncomeInput = document.getElementById('monthlyIncome');
+            const computeTaxBtn = document.getElementById('computeTaxBtn');
+            const computeIncomeBtn = document.getElementById('computeIncomeBtn');
+            const resetTaxBtn = document.getElementById('resetTaxBtn');
+            const taxSummary = document.getElementById('taxSummary');
+            const taxableIncomeEl = document.getElementById('taxableIncome');
+            const annualTaxEl = document.getElementById('annualTax');
+            const effectiveRateEl = document.getElementById('effectiveRate');
+            const monthlyTaxEl = document.getElementById('monthlyTax');
+            const incomeBracketEl = document.getElementById('incomeBracket');
+            const incomeSummary = document.getElementById('incomeSummary');
+            const derivedMonthlyTaxEl = document.getElementById('derivedMonthlyTax');
+            const derivedAnnualIncomeEl = document.getElementById('derivedAnnualIncome');
+            const derivedMonthlyIncomeEl = document.getElementById('derivedMonthlyIncome');
+            const derivedIncomeBracketEl = document.getElementById('derivedIncomeBracket');
+
+            function formatCurrency(value) {
+                return `PHP ${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+
+            function formatPercentage(value) {
+                return `${value.toFixed(2)}%`;
+            }
+
+            const brackets = [
+                { limit: 250000, baseTax: 0, rate: 0 },
+                { limit: 400000, baseTax: 0, rate: 0.20, excessOver: 250000 },
+                { limit: 800000, baseTax: 30000, rate: 0.25, excessOver: 400000 },
+                { limit: 2000000, baseTax: 130000, rate: 0.30, excessOver: 800000 },
+                { limit: 8000000, baseTax: 490000, rate: 0.32, excessOver: 2000000 },
+                { limit: Infinity, baseTax: 2410000, rate: 0.35, excessOver: 8000000 }
+            ];
+
+            function computeTax(annualIncome) {
+                let annualTax = 0;
+                let bracketDescription = 'Up to PHP 250,000';
+
+                for (const bracket of brackets) {
+                    if (annualIncome <= bracket.limit) {
+                        if (bracket.rate === 0) {
+                            annualTax = 0;
+                            bracketDescription = 'Up to PHP 250,000';
+                        } else {
+                            annualTax = bracket.baseTax + (annualIncome - bracket.excessOver) * bracket.rate;
+                            bracketDescription = `Over PHP ${bracket.excessOver.toLocaleString('en-PH')} to PHP ${bracket.limit === Infinity ? 'and above' : bracket.limit.toLocaleString('en-PH')}`;
+                        }
+                        break;
+                    }
+                }
+
+                return {
+                    annualTax,
+                    bracketDescription
+                };
+            }
+
+            function deriveIncomeFromTax(annualTax) {
+                for (const bracket of brackets) {
+                    if (annualTax <= bracket.baseTax && bracket.rate !== 0) {
+                        continue;
+                    }
+
+                    if (bracket.limit === Infinity || annualTax <= computeTax(bracket.limit).annualTax) {
+                        if (bracket.rate === 0) {
+                            return {
+                                income: annualTax > 0 ? bracket.limit : annualTax,
+                                bracketDescription: 'Up to PHP 250,000'
+                            };
+                        }
+
+                        const income = (annualTax - bracket.baseTax) / bracket.rate + bracket.excessOver;
+
+                        if (income >= (bracket.excessOver || 0)) {
+                            const upper = bracket.limit === Infinity ? 'and above' : `to PHP ${bracket.limit.toLocaleString('en-PH')}`;
+                            return {
+                                income,
+                                bracketDescription: `Over PHP ${bracket.excessOver.toLocaleString('en-PH')} ${upper}`
+                            };
+                        }
+                    }
+                }
+
+                return null;
+            }
+
+            function syncInputs(changedInput) {
+                const annualIncome = parseFloat(annualIncomeInput.value) || 0;
+                const monthlyIncome = parseFloat(monthlyIncomeInput.value) || 0;
+
+                if (changedInput === 'annual' && annualIncome > 0) {
+                    monthlyIncomeInput.value = (annualIncome / 12).toFixed(2);
+                } else if (changedInput === 'monthly' && monthlyIncome > 0) {
+                    annualIncomeInput.value = (monthlyIncome * 12).toFixed(2);
+                }
+            }
+
+            computeTaxBtn.addEventListener('click', () => {
+                const annualIncome = parseFloat(annualIncomeInput.value);
+                const monthlyIncome = parseFloat(monthlyIncomeInput.value);
+
+                if (!annualIncome && !monthlyIncome) {
+                    alert('Please enter either annual or monthly income.');
+                    return;
+                }
+
+                let income = annualIncome;
+
+                if (!income && monthlyIncome) {
+                    income = monthlyIncome * 12;
+                }
+
+                if (income < 0) {
+                    alert('Income cannot be negative.');
+                    return;
+                }
+
+                const { annualTax, bracketDescription } = computeTax(income);
+                const effectiveRate = income === 0 ? 0 : (annualTax / income) * 100;
+                const monthlyTax = annualTax / 12;
+
+                taxableIncomeEl.textContent = formatCurrency(income);
+                annualTaxEl.textContent = formatCurrency(annualTax);
+                effectiveRateEl.textContent = formatPercentage(effectiveRate);
+                monthlyTaxEl.textContent = formatCurrency(monthlyTax);
+                incomeBracketEl.textContent = bracketDescription;
+
+                taxSummary.hidden = false;
+                incomeSummary.hidden = true;
+            });
+
+            computeIncomeBtn.addEventListener('click', () => {
+                const monthlyTaxInput = parseFloat(document.getElementById('monthlyTaxInput').value);
+
+                if (!monthlyTaxInput) {
+                    alert('Please enter the monthly tax you are paying.');
+                    return;
+                }
+
+                if (monthlyTaxInput < 0) {
+                    alert('Tax cannot be negative.');
+                    return;
+                }
+
+                const annualTax = monthlyTaxInput * 12;
+                const derived = deriveIncomeFromTax(annualTax);
+
+                if (!derived || derived.income < 0) {
+                    alert('Unable to estimate income for the amount provided.');
+                    return;
+                }
+
+                derivedMonthlyTaxEl.textContent = formatCurrency(monthlyTaxInput);
+                derivedAnnualIncomeEl.textContent = formatCurrency(derived.income);
+                derivedMonthlyIncomeEl.textContent = formatCurrency(derived.income / 12);
+                derivedIncomeBracketEl.textContent = derived.bracketDescription;
+
+                incomeSummary.hidden = false;
+                taxSummary.hidden = true;
+            });
+
+            resetTaxBtn.addEventListener('click', () => {
+                annualIncomeInput.value = '';
+                monthlyIncomeInput.value = '';
+                document.getElementById('monthlyTaxInput').value = '';
+                taxSummary.hidden = true;
+                incomeSummary.hidden = true;
+            });
+
+            annualIncomeInput.addEventListener('input', () => syncInputs('annual'));
+            monthlyIncomeInput.addEventListener('input', () => syncInputs('monthly'));
+        });
+    </script>
+</body>
+</html>

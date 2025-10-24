@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Timer App</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <a href="apps.html" class="apps-button">Apps</a>
+
+    <!-- Minecraft Villager Character -->
+    <div class="minecraft-character" id="villager">
+        <div class="speech-bubble" id="speechBubble">hmm</div>
+        <div class="villager-head">
+            <div class="face"></div>
+        </div>
+        <div class="robe">
+            <div class="arms"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Task Timer</h1>
+        
+        <div class="task-input">
+            <input type="text" id="taskInput" placeholder="Add a new task...">
+            <div class="timer-input">
+                <input type="number" id="minutes" min="0" max="59" placeholder="Min" value="25">
+                <span>:</span>
+                <input type="number" id="seconds" min="0" max="59" placeholder="Sec" value="00">
+            </div>
+            <button id="addBtn"><i class="fas fa-plus"></i> Add Task</button>
+        </div>
+
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="pending">Pending</button>
+            <button class="filter-btn" data-filter="completed">Completed</button>
+        </div>
+
+        <ul id="taskList">
+            <!-- Tasks will be added here dynamically -->
+        </ul>
+    </div>
+
+    <div class="timer-modal" id="timerModal">
+        <div class="timer-content">
+            <h2 id="currentTask">Task Name</h2>
+            <div class="time-display" id="timeDisplay">25:00</div>
+            <div class="timer-controls">
+                <button id="startPauseBtn"><i class="fas fa-play"></i> Start</button>
+                <button id="resetBtn"><i class="fas fa-redo"></i> Reset</button>
+                <button id="completeBtn"><i class="fas fa-check"></i> Complete</button>
+            </div>
+            <button class="close-btn" id="closeModal">&times;</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Villager movement script
+        document.addEventListener('DOMContentLoaded', () => {
+            const villager = document.getElementById('villager');
+            const speechBubble = document.getElementById('speechBubble');
+            let position = -100; // Start off-screen left
+            let direction = 1; // 1 for right, -1 for left
+            const speed = 1.5;
+            let isMoving = true;
+
+            const sentences = [
+                "Hmm...",
+                "Got any emeralds?",
+                "Don't trample the crops!",
+                "What a day!",
+                "Hrmmm.",
+                "A task a day keeps the creepers away.",
+                "Is that a diamond pickaxe?",
+                "Stay safe out there."
+            ];
+
+            // Show speech bubble on click
+            villager.addEventListener('click', () => {
+                // Prevent showing a new message while one is visible
+                if (speechBubble.classList.contains('show')) return;
+
+                // Get a random sentence
+                const randomIndex = Math.floor(Math.random() * sentences.length);
+                speechBubble.textContent = sentences[randomIndex];
+
+                speechBubble.classList.add('show');
+                setTimeout(() => {
+                    speechBubble.classList.remove('show');
+                }, 2500); // Hide after 2.5 seconds
+            });
+
+            function moveVillager() {
+                if (isMoving) {
+                    position += speed * direction;
+                    villager.classList.add('moving');
+
+                    // Change direction when reaching screen edges
+                    if (position > window.innerWidth) {
+                        direction = -1;
+                        villager.style.transform = 'scaleX(-1)';
+                    } else if (position < -100) {
+                        direction = 1;
+                        villager.style.transform = 'scaleX(1)';
+                    }
+                    
+                    villager.style.left = position + 'px';
+
+                    // Randomly pause
+                    if (Math.random() < 0.005) {
+                        isMoving = false;
+                        villager.classList.remove('moving');
+                        setTimeout(() => {
+                            isMoving = true;
+                        }, 1000 + Math.random() * 2000);
+                    }
+                } else {
+                    villager.classList.remove('moving');
+                }
+                
+                requestAnimationFrame(moveVillager);
+            }
+
+            moveVillager();
+        });
+    </script>
+</body>
+</html>
