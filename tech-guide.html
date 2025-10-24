@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide to Tech</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="apps-page">
+    <a href="apps.html" class="apps-button back-button">Back</a>
+
+    <div class="container apps-container">
+        <h1>Guide to Tech</h1>
+        <p class="apps-intro">Choose an IT job to see the core tech stack to learn and why it matters.</p>
+
+        <div class="apps-grid" id="jobGrid">
+            <button type="button" class="app-card job-card" data-job="frontend">
+                <i class="fas fa-code"></i>
+                <h2>Frontend Developer</h2>
+                <p>Build user interfaces for web apps.</p>
+            </button>
+            <button type="button" class="app-card job-card" data-job="backend">
+                <i class="fas fa-server"></i>
+                <h2>Backend Developer</h2>
+                <p>Build APIs and server logic.</p>
+            </button>
+            <button type="button" class="app-card job-card" data-job="fullstack">
+                <i class="fas fa-layer-group"></i>
+                <h2>Full-Stack Dev</h2>
+                <p>Work across frontend and backend.</p>
+            </button>
+            <button type="button" class="app-card job-card" data-job="mobile">
+                <i class="fas fa-mobile-alt"></i>
+                <h2>Mobile Dev</h2>
+                <p>iOS/Android app development.</p>
+            </button>
+            <button type="button" class="app-card job-card" data-job="devops">
+                <i class="fas fa-cogs"></i>
+                <h2>DevOps Engineer</h2>
+                <p>CI/CD, infrastructure, automation.</p>
+            </button>
+            <button type="button" class="app-card job-card" data-job="dataeng">
+                <i class="fas fa-database"></i>
+                <h2>Data Engineer</h2>
+                <p>Data pipelines and warehouses.</p>
+            </button>
+            <button type="button" class="app-card job-card" data-job="datasci">
+                <i class="fas fa-robot"></i>
+                <h2>Data Scientist / ML</h2>
+                <p>Modeling and machine learning.</p>
+            </button>
+            <button type="button" class="app-card job-card" data-job="qa">
+                <i class="fas fa-vial"></i>
+                <h2>QA Automation</h2>
+                <p>Automated testing and quality.</p>
+            </button>
+            <button type="button" class="app-card job-card" data-job="cloud">
+                <i class="fas fa-cloud"></i>
+                <h2>Cloud Architect</h2>
+                <p>Design scalable cloud systems.</p>
+            </button>
+            <button type="button" class="app-card job-card" data-job="security">
+                <i class="fas fa-shield-alt"></i>
+                <h2>Cybersecurity</h2>
+                <p>Secure systems and networks.</p>
+            </button>
+            <button type="button" class="app-card job-card" data-job="gamedev">
+                <i class="fas fa-gamepad"></i>
+                <h2>Game Developer</h2>
+                <p>Games for desktop and mobile.</p>
+            </button>
+        </div>
+
+        <div class="tax-summary" id="resultPanel" style="display:none; margin-top: 2rem;">
+            <h2 id="resultTitle">Result</h2>
+            <div style="margin-bottom: 1rem; color:#d7f3c2; font-size: 0.85rem;">Recommended core stack:</div>
+            <ul id="techList" style="margin-bottom: 1rem;"></ul>
+            <div id="explanation" style="color:#d7f3c2; font-size: 0.85rem;"></div>
+        </div>
+    </div>
+
+    <script>
+        const JOBS = {
+            frontend: {
+                title: 'Frontend Developer',
+                tech: [
+                    'HTML, CSS (Flexbox, Grid), Responsive Design',
+                    'JavaScript (ES6+), TypeScript',
+                    'A framework: React or Vue or Angular',
+                    'State management (e.g., Redux/Pinia/Zustand)',
+                    'Testing: Jest + React Testing Library / Cypress',
+                    'Tooling: Vite/Webpack, npm/yarn, Git'
+                ],
+                why: 'Frontend focuses on building accessible, responsive UIs. Modern frameworks, strong JavaScript/TypeScript skills, and testing ensure quality and maintainability.'
+            },
+            backend: {
+                title: 'Backend Developer',
+                tech: [
+                    'One language/runtime: Node.js, Python, Java, or Go',
+                    'Web frameworks: Express/Fastify (Node), Django/FastAPI (Python), Spring Boot (Java)',
+                    'Databases: PostgreSQL/MySQL + Redis',
+                    'API design: REST and basics of GraphQL',
+                    'Auth, security, and input validation',
+                    'Testing: unit/integration; Docker basics; Git'
+                ],
+                why: 'Backend work centers on APIs, data modeling, and reliability. Knowing a web framework, databases, and security best practices is essential.'
+            },
+            fullstack: {
+                title: 'Full-Stack Developer',
+                tech: [
+                    'Frontend: React/Vue + TypeScript',
+                    'Backend: Node.js (Express/Fastify) or Python (FastAPI/Django)',
+                    'Database: PostgreSQL/MySQL; ORM (Prisma/TypeORM/SQLAlchemy)',
+                    'API design, session/JWT auth',
+                    'Dev basics: Docker, Git, CI',
+                    'Testing across frontend and backend'
+                ],
+                why: 'Full‑stack spans UI to database. Balance frontend skills with backend fundamentals and delivery (Docker/CI) to ship features end‑to‑end.'
+            },
+            mobile: {
+                title: 'Mobile Developer',
+                tech: [
+                    'Cross‑platform: React Native or Flutter',
+                    'Native basics: Kotlin (Android) or Swift (iOS)',
+                    'State management, navigation, native modules',
+                    'Testing: unit + end‑to‑end',
+                    'APIs, offline storage, push notifications'
+                ],
+                why: 'Mobile requires platform patterns, performance, and UX. Cross‑platform frameworks accelerate delivery; native knowledge helps with deeper integrations.'
+            },
+            devops: {
+                title: 'DevOps Engineer',
+                tech: [
+                    'Linux, networking, shell scripting',
+                    'Cloud: AWS/Azure/GCP (pick one)',
+                    'Containers: Docker; Orchestration: Kubernetes',
+                    'CI/CD: GitHub Actions/GitLab CI/Jenkins',
+                    'Infra as Code: Terraform',
+                    'Observability: Prometheus, Grafana, logging'
+                ],
+                why: 'DevOps focuses on repeatable delivery and reliability. IaC, CI/CD, containers, and observability are the foundations of modern operations.'
+            },
+            dataeng: {
+                title: 'Data Engineer',
+                tech: [
+                    'Python or Scala',
+                    'Distributed processing: Spark',
+                    'ETL/ELT: Airflow/Prefect',
+                    'Data warehouses/lakes: BigQuery/Redshift/Snowflake + Parquet',
+                    'Batch/stream: Kafka, Flink (basics)',
+                    'SQL, data modeling, partitioning'
+                ],
+                why: 'Data Engineers build reliable pipelines and storage. Mastering orchestration, processing engines, and warehousing is key.'
+            },
+            datasci: {
+                title: 'Data Scientist / ML Engineer',
+                tech: [
+                    'Python, NumPy, Pandas',
+                    'Modeling: scikit‑learn, PyTorch/TensorFlow',
+                    'Data viz: Matplotlib/Seaborn/Plotly',
+                    'ML ops basics: experiment tracking, model serving (FastAPI)',
+                    'SQL and statistics'
+                ],
+                why: 'Data Science blends statistics and engineering. Solid Python, modeling libraries, and deployment basics let you take models to production.'
+            },
+            qa: {
+                title: 'QA Automation Engineer',
+                tech: [
+                    'Test frameworks: Cypress/Playwright/Selenium',
+                    'API testing: Postman/Newman, REST basics',
+                    'CI integration for automated test suites',
+                    'Basics of JavaScript/TypeScript or Python'
+                ],
+                why: 'Automation increases coverage and speed. Web and API automation combined with CI ensures fast feedback and quality.'
+            },
+            cloud: {
+                title: 'Cloud Architect',
+                tech: [
+                    'Cloud deep‑dive: AWS/Azure/GCP architectures',
+                    'Networking, security, IAM',
+                    'Containers and serverless',
+                    'Reliability: scaling, HA, DR',
+                    'Cost management and monitoring'
+                ],
+                why: 'Architects design secure, scalable systems. Deep cloud knowledge and reliability patterns are essential for resilient designs.'
+            },
+            security: {
+                title: 'Cybersecurity Analyst',
+                tech: [
+                    'Networking, OS internals, threat modeling',
+                    'Security tools: SIEM, IDS/IPS, vulnerability scanning',
+                    'Secure coding, OWASP Top 10 basics',
+                    'Incident response and logging'
+                ],
+                why: 'Security is risk management. Understanding networks, systems, and common vulnerabilities helps prevent and respond to threats.'
+            },
+            gamedev: {
+                title: 'Game Developer',
+                tech: [
+                    'Engine: Unity (C#) or Unreal (C++)',
+                    'Game math and physics basics',
+                    'Asset pipelines, scenes, input systems',
+                    'Profiling and optimization',
+                    'Version control and build tooling'
+                ],
+                why: 'Game dev combines performance, tooling, and design. Engines, math, and optimization underpin a smooth gameplay experience.'
+            }
+        };
+
+        const resultPanel = document.getElementById('resultPanel');
+        const resultTitle = document.getElementById('resultTitle');
+        const techList = document.getElementById('techList');
+        const explanation = document.getElementById('explanation');
+
+        document.querySelectorAll('.job-card').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const key = btn.getAttribute('data-job');
+                const data = JOBS[key];
+                if (!data) return;
+                resultTitle.textContent = data.title;
+                techList.innerHTML = '';
+                data.tech.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    techList.appendChild(li);
+                });
+                explanation.textContent = data.why;
+                resultPanel.style.display = 'block';
+                resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
+</body>
+</html>
