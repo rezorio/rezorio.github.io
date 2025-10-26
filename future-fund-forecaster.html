@@ -3,25 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Future Fund Forecaster</title>
+  <title>Personal Savings Planner</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
-<body class="apps-page forecaster-page">
+<body class="apps-page savings-page">
   <a href="apps.html" class="apps-button back-button">Apps</a>
 
   <div class="container">
-    <h1>Future Fund Forecaster</h1>
-    <p class="apps-intro" style="text-align:center">Estimate how much to save monthly to hit a goal by a date, factoring inflation and expected returns.</p>
+    <h1>Personal Savings Planner</h1>
+    <p class="apps-intro" style="text-align:center">Easily compute how much to save each month to reach your personal fund goal by a target date, factoring inflation and expected returns.</p>
 
-    <div class="tax-inputs" role="form" aria-label="Future Fund Forecaster">
+    <div class="tax-inputs" role="form" aria-label="Personal Savings Planner">
       <div class="tax-field">
-        <label for="goalToday">Goal (today's pesos)</label>
+        <label for="goalToday">Goal amount (today's pesos)</label>
         <input id="goalToday" type="number" min="0" step="1000" placeholder="e.g. 2000000" />
       </div>
 
       <div class="tax-field">
-        <label for="targetDate">Target Date</label>
+        <label for="targetDate">Target date</label>
         <input id="targetDate" type="date" />
       </div>
 
@@ -51,7 +51,7 @@
       <ul>
         <li><span>Goal in future pesos:</span> <strong id="goalFuture">—</strong></li>
         <li><span>Months until goal:</span> <strong id="monthsUntil">—</strong></li>
-        <li><span>Required monthly saving:</span> <strong id="requiredMonthly">—</strong></li>
+        <li><span>Required monthly savings:</span> <strong id="requiredMonthly">—</strong></li>
         <li><span>Total contributions:</span> <strong id="totalContrib">—</strong></li>
         <li><span>Projected portfolio at target:</span> <strong id="projectedFV">—</strong></li>
       </ul>
