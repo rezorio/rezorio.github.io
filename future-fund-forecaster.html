@@ -12,7 +12,7 @@
 
   <div class="container">
     <h1>Personal Savings Planner</h1>
-    <p class="apps-intro" style="text-align:center">Easily compute how much to save each month to reach your personal fund goal by a target date, factoring inflation and expected returns.</p>
+    <p class="apps-intro" style="text-align:center">Easily compute how much to save each month to reach your personal fund goal by a target date. Choose monthly or yearly projection details.</p>
 
     <div class="tax-inputs" role="form" aria-label="Personal Savings Planner">
       <div class="tax-field">
@@ -31,13 +31,11 @@
       </div>
 
       <div class="tax-field">
-        <label for="expectedReturn">Expected Annual Return (%)</label>
-        <input id="expectedReturn" type="number" min="0" step="0.01" placeholder="e.g. 8" />
-      </div>
-
-      <div class="tax-field">
-        <label for="inflation">Expected Inflation (%)</label>
-        <input id="inflation" type="number" min="0" step="0.01" placeholder="e.g. 4" />
+        <label for="projectionDetail">Projection detail</label>
+        <select id="projectionDetail">
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+        </select>
       </div>
 
       <div class="tax-buttons" style="grid-column: 1 / -1;">
@@ -49,28 +47,21 @@
     <div class="tax-summary" aria-live="polite">
       <h2>Results</h2>
       <ul>
-        <li><span>Goal in future pesos:</span> <strong id="goalFuture">—</strong></li>
+        <li><span>Goal amount:</span> <strong id="goalFuture">—</strong></li>
         <li><span>Months until goal:</span> <strong id="monthsUntil">—</strong></li>
         <li><span>Required monthly savings:</span> <strong id="requiredMonthly">—</strong></li>
         <li><span>Total contributions:</span> <strong id="totalContrib">—</strong></li>
-        <li><span>Projected portfolio at target:</span> <strong id="projectedFV">—</strong></li>
+        <li><span>Projected balance at target:</span> <strong id="projectedFV">—</strong></li>
       </ul>
     </div>
 
     <div class="tax-reference" style="margin-top:16px">
-      <h2>Yearly Projection</h2>
+      <h2 id="projectionTitle">Projection</h2>
       <div style="overflow-x:auto">
         <table id="projectionTable">
-          <thead>
-            <tr>
-              <th>Year</th>
-              <th>Contributions (₱)</th>
-              <th>Growth (₱)</th>
-              <th>End Balance (₱)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="4" style="text-align:center;color:#8b6f61">No data yet. Calculate to see the projection.</td></tr>
+          <thead id="projectionHead"></thead>
+          <tbody id="projectionBody">
+            <tr><td style="text-align:center;color:#8b6f61">No data yet. Calculate to see the projection.</td></tr>
           </tbody>
         </table>
       </div>
@@ -82,8 +73,7 @@
       const goalToday = document.getElementById('goalToday');
       const targetDate = document.getElementById('targetDate');
       const currentSavings = document.getElementById('currentSavings');
-      const expectedReturn = document.getElementById('expectedReturn');
-      const inflation = document.getElementById('inflation');
+      const projectionDetail = document.getElementById('projectionDetail');
 
       const calcBtn = document.getElementById('calcBtn');
       const resetBtn = document.getElementById('resetBtn');
@@ -93,7 +83,8 @@
       const requiredMonthlyEl = document.getElementById('requiredMonthly');
       const totalContribEl = document.getElementById('totalContrib');
       const projectedFVEl = document.getElementById('projectedFV');
-      const projectionTableBody = document.querySelector('#projectionTable tbody');
+      const projectionHead = document.getElementById('projectionHead');
+      const projectionBody = document.getElementById('projectionBody');
 
       function formatPHP(x){
         if (!isFinite(x)) return '—';
@@ -111,13 +102,9 @@
       function validate(){
         const g = parseFloat(goalToday.value);
         const td = targetDate.value ? new Date(targetDate.value) : null;
-        const r = parseFloat(expectedReturn.value);
-        const inf = parseFloat(inflation.value);
         if (!(g > 0)) return { ok:false, msg:'Enter a valid goal amount in today\'s pesos.' };
         if (!td || isNaN(td.getTime())) return { ok:false, msg:'Choose a valid target date.' };
         if (td <= new Date()) return { ok:false, msg:'Target date must be in the future.' };
-        if (!(r >= 0)) return { ok:false, msg:'Enter a valid expected annual return.' };
-        if (!(inf >= 0)) return { ok:false, msg:'Enter a valid inflation rate.' };
         return { ok:true };
       }
 
@@ -128,38 +115,19 @@
         const now = new Date();
         const td = new Date(targetDate.value);
         const n = monthsBetween(now, td);
+        if (n === 0) { alert('Target date must be at least 1 month from now.'); return; }
         const years = n / 12;
 
         const goalTodayVal = parseFloat(goalToday.value);
         const current = parseFloat(currentSavings.value || '0');
-        const annualReturn = parseFloat(expectedReturn.value) / 100; // nominal
-        const infl = parseFloat(inflation.value) / 100;
-
-        // Inflate goal to future pesos
-        const goalFuture = goalTodayVal * Math.pow(1 + infl, years);
-
-        // Monthly nominal return
-        const i = annualReturn / 12;
-
-        // Future value of current savings
-        const fvCurrent = current * Math.pow(1 + i, n);
-
-        // Future value needed from monthly savings
-        const fvNeededFromSaving = Math.max(0, goalFuture - fvCurrent);
-
-        // Solve required monthly savings using annuity immediate formula
-        let monthly = 0;
-        if (i === 0) {
-          monthly = fvNeededFromSaving / n;
-        } else {
-          const factor = (Math.pow(1 + i, n) - 1) / i;
-          monthly = fvNeededFromSaving / factor;
-        }
-        monthly = Math.max(0, monthly);
+        // No growth model: simple straight-line savings
+        const goalFuture = goalTodayVal;
+        const needed = Math.max(0, goalFuture - current);
+        const monthly = Math.max(0, needed / n);
 
         // Totals
-        const totalContrib = monthly * n + current;
-        const projectedFV = fvCurrent + (monthly * ((Math.pow(1 + i, n) - 1) / (i || 1))) ;
+        const totalContrib = monthly * n;
+        const projectedFV = current + totalContrib;
 
         // Output
         goalFutureEl.textContent = formatPHP(goalFuture);
@@ -168,46 +136,46 @@
         totalContribEl.textContent = formatPHP(totalContrib);
         projectedFVEl.textContent = formatPHP(projectedFV);
 
-        // Yearly projection (approximate using annual compounding on balances and 12*monthly contributions)
-        const rows = [];
-        let balance = current;
-        for (let year = 1; year <= Math.ceil(years); year++) {
-          const contribThisYear = (year < Math.ceil(years)) ? (monthly * 12) : (monthly * (n - (year - 1) * 12));
-          // Apply monthly compounding for the year in a loop to be closer to monthly reality
-          let growth = 0;
-          let monthsThisYear = (year < Math.ceil(years)) ? 12 : (n - (year - 1) * 12);
-          for (let m = 0; m < monthsThisYear; m++) {
-            // contribution at month end
-            balance *= (1 + i);
-            const beforeAdd = balance;
+        // Projection (monthly or yearly) without growth
+        const granularity = projectionDetail.value;
+        let headerHtml = '';
+        let bodyHtml = '';
+        if (granularity === 'monthly') {
+          headerHtml = '<tr><th>Month</th><th>Contribution (₱)</th><th>End Balance (₱)</th></tr>';
+          let balance = current;
+          for (let m = 1; m <= n; m++) {
             balance += monthly;
-            growth += (beforeAdd - (beforeAdd / (1 + i))); // interest accrued this month
+            bodyHtml += `<tr><td>${m}</td><td>${formatPHP(monthly)}</td><td>${formatPHP(balance)}</td></tr>`;
           }
-          rows.push({ year, contrib: contribThisYear, growth: balance - (rows.length ? rows[rows.length-1].end : current) - contribThisYear, end: balance });
+          document.getElementById('projectionTitle').textContent = 'Monthly Projection';
+        } else {
+          headerHtml = '<tr><th>Year</th><th>Contributions (₱)</th><th>End Balance (₱)</th></tr>';
+          let balance = current;
+          const totalYears = Math.ceil(years);
+          for (let y = 1; y <= totalYears; y++) {
+            const monthsThisYear = (y < totalYears) ? 12 : (n - (y - 1) * 12);
+            const contrib = monthly * monthsThisYear;
+            balance += contrib;
+            bodyHtml += `<tr><td>${y}</td><td>${formatPHP(contrib)}</td><td>${formatPHP(balance)}</td></tr>`;
+          }
+          document.getElementById('projectionTitle').textContent = 'Yearly Projection';
         }
 
-        projectionTableBody.innerHTML = rows.map(r => `
-          <tr>
-            <td>${r.year}</td>
-            <td>${formatPHP(r.contrib)}</td>
-            <td>${formatPHP(Math.max(0, r.growth))}</td>
-            <td>${formatPHP(r.end)}</td>
-          </tr>
-        `).join('');
+        projectionHead.innerHTML = headerHtml;
+        projectionBody.innerHTML = bodyHtml;
       }
 
       function reset(){
         goalToday.value = '';
         targetDate.value = '';
         currentSavings.value = '';
-        expectedReturn.value = '';
-        inflation.value = '';
         goalFutureEl.textContent = '—';
         monthsUntilEl.textContent = '—';
         requiredMonthlyEl.textContent = '—';
         totalContribEl.textContent = '—';
         projectedFVEl.textContent = '—';
-        projectionTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#8b6f61">No data yet. Calculate to see the projection.</td></tr>';
+        projectionHead.innerHTML = '';
+        projectionBody.innerHTML = '<tr><td style="text-align:center;color:#8b6f61">No data yet. Calculate to see the projection.</td></tr>';
       }
 
       // Initialize defaults
@@ -216,12 +184,12 @@
         const d = new Date();
         d.setFullYear(d.getFullYear() + 5);
         targetDate.valueAsDate = d;
-        expectedReturn.value = 8;
-        inflation.value = 4;
+        projectionDetail.value = 'monthly';
       })();
 
       calcBtn.addEventListener('click', calculate);
       resetBtn.addEventListener('click', reset);
+      projectionDetail.addEventListener('change', () => { calculate(); });
     })();
   </script>
 </body>
