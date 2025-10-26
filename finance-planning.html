@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finance Planning</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+<body class="apps-page finance-page">
+  <a href="apps.html" class="apps-button back-button">Apps</a>
+
+  <div class="container">
+    <h1>Finance Planning</h1>
+    <p class="apps-intro" style="text-align:center">Quickly estimate monthly payments, total interest, and view an amortization schedule for common Philippine loans.</p>
+
+    <div class="tax-inputs" role="form" aria-label="Loan Calculator">
+      <div class="tax-field">
+        <label for="loanType">Loan Type</label>
+        <select id="loanType" class="finance-input">
+          <option value="custom">Custom</option>
+          <option value="salary">Salary Loan</option>
+          <option value="personal">Personal Loan</option>
+          <option value="auto">Auto Loan</option>
+          <option value="housing">Housing Loan</option>
+        </select>
+      </div>
+
+      <div class="tax-field">
+        <label for="amount">Loan Amount (₱)</label>
+        <input id="amount" class="finance-input" type="number" min="0" step="1000" placeholder="e.g. 300000" />
+      </div>
+
+      <div class="tax-field">
+        <label for="rate">Annual Interest Rate (%)</label>
+        <input id="rate" class="finance-input" type="number" min="0" step="0.01" placeholder="e.g. 12" />
+      </div>
+
+      <div class="tax-field">
+        <label for="termValue">Term</label>
+        <div style="display:flex; gap:8px; align-items:center">
+          <input id="termValue" class="finance-input" type="number" min="1" step="1" placeholder="e.g. 36" style="flex:1" />
+          <select id="termUnit" class="finance-input">
+            <option value="months">Months</option>
+            <option value="years">Years</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="tax-buttons" style="grid-column: 1 / -1;">
+        <button id="calcBtn"><i class="fas fa-calculator"></i>&nbsp;Calculate</button>
+        <button id="resetBtn" style="background:#f1e7da;color:#3b2f2f;border:1px solid #eadfce"><i class="fas fa-rotate-left"></i>&nbsp;Reset</button>
+      </div>
+    </div>
+
+    <div class="tax-summary" aria-live="polite">
+      <h2>Results</h2>
+      <ul>
+        <li><span>Monthly Payment:</span> <strong id="monthlyPayment">—</strong></li>
+        <li><span>Total Interest:</span> <strong id="totalInterest">—</strong></li>
+        <li><span>Total Payment:</span> <strong id="totalPayment">—</strong></li>
+        <li><span>Number of Payments:</span> <strong id="numPayments">—</strong></li>
+      </ul>
+    </div>
+
+    <div class="tax-reference" style="margin-top:16px">
+      <h2>Amortization Schedule</h2>
+      <div style="overflow-x:auto">
+        <table id="scheduleTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Payment</th>
+              <th>Principal</th>
+              <th>Interest</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="5" style="text-align:center;color:#8b6f61">No data yet. Calculate to see the schedule.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const loanType = document.getElementById('loanType');
+      const amount = document.getElementById('amount');
+      const rate = document.getElementById('rate');
+      const termValue = document.getElementById('termValue');
+      const termUnit = document.getElementById('termUnit');
+      const calcBtn = document.getElementById('calcBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      const monthlyPaymentEl = document.getElementById('monthlyPayment');
+      const totalInterestEl = document.getElementById('totalInterest');
+      const totalPaymentEl = document.getElementById('totalPayment');
+      const numPaymentsEl = document.getElementById('numPayments');
+      const scheduleTable = document.getElementById('scheduleTable').querySelector('tbody');
+
+      // Simple presets typical in PH market (illustrative defaults)
+      const PRESETS = {
+        custom:  { rate: '', term: '', unit: 'months' },
+        salary:  { rate: 18, term: 12, unit: 'months' },
+        personal:{ rate: 24, term: 24, unit: 'months' },
+        auto:    { rate: 10, term: 60, unit: 'months' },
+        housing: { rate: 7,  term: 20, unit: 'years' }
+      };
+
+      function applyPreset(type){
+        const p = PRESETS[type] || PRESETS.custom;
+        if(p.rate !== '') rate.value = p.rate;
+        if(p.term !== '') termValue.value = p.term;
+        termUnit.value = p.unit;
+      }
+
+      loanType.addEventListener('change', () => applyPreset(loanType.value));
+
+      function formatPHP(x){
+        if (!isFinite(x)) return '—';
+        return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 2 }).format(x);
+      }
+
+      function validateInputs(){
+        const P = parseFloat(amount.value);
+        const r = parseFloat(rate.value);
+        const t = parseInt(termValue.value, 10);
+        if (!(P > 0)) return { ok:false, msg:'Please enter a valid loan amount.' };
+        if (!(r >= 0)) return { ok:false, msg:'Please enter a valid annual interest rate.' };
+        if (!(t > 0)) return { ok:false, msg:'Please enter a valid term.' };
+        return { ok:true };
+      }
+
+      function calculate(){
+        const valid = validateInputs();
+        if(!valid.ok){ alert(valid.msg); return; }
+
+        const P = parseFloat(amount.value);
+        const annualRate = parseFloat(rate.value) / 100;
+        const n = (termUnit.value === 'years') ? parseInt(termValue.value, 10) * 12 : parseInt(termValue.value, 10);
+        const r = annualRate / 12;
+
+        let payment;
+        if (r === 0) {
+          payment = P / n;
+        } else {
+          const pow = Math.pow(1 + r, -n);
+          payment = (P * r) / (1 - pow);
+        }
+
+        let balance = P;
+        let totalInterest = 0;
+        const rows = [];
+
+        for (let i = 1; i <= n; i++) {
+          let interest = r * balance;
+          let principal = payment - interest;
+
+          // Prevent overshoot due to floating errors
+          if (i === n) {
+            principal = balance;
+            payment = principal + interest;
+          }
+
+          balance = Math.max(0, balance - principal);
+          totalInterest += interest;
+
+          rows.push({ i, payment, principal, interest, balance });
+        }
+
+        monthlyPaymentEl.textContent = formatPHP(payment);
+        totalInterestEl.textContent = formatPHP(totalInterest);
+        totalPaymentEl.textContent = formatPHP(P + totalInterest);
+        numPaymentsEl.textContent = String(n);
+
+        // Render schedule
+        scheduleTable.innerHTML = rows.map(rw => `
+          <tr>
+            <td>${rw.i}</td>
+            <td>${formatPHP(rw.payment)}</td>
+            <td>${formatPHP(rw.principal)}</td>
+            <td>${formatPHP(rw.interest)}</td>
+            <td>${formatPHP(rw.balance)}</td>
+          </tr>
+        `).join('');
+      }
+
+      function reset(){
+        loanType.value = 'custom';
+        amount.value = '';
+        rate.value = '';
+        termValue.value = '';
+        termUnit.value = 'months';
+        monthlyPaymentEl.textContent = '—';
+        totalInterestEl.textContent = '—';
+        totalPaymentEl.textContent = '—';
+        numPaymentsEl.textContent = '—';
+        scheduleTable.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#8b6f61">No data yet. Calculate to see the schedule.</td></tr>';
+      }
+
+      calcBtn.addEventListener('click', calculate);
+      resetBtn.addEventListener('click', reset);
+
+      // Initialize with personal loan defaults to showcase
+      applyPreset('personal');
+    })();
+  </script>
+</body>
+</html>
