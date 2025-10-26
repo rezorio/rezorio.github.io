@@ -769,6 +769,11 @@ body.tech-guide-page.apps-page {
   margin-bottom: 10px;
 }
 
+/* Finance page: reduce top padding */
+body.finance-page.apps-page {
+  padding-top: 72px;
+}
+
 /* Main container */
 .container {
   max-width: 780px;
