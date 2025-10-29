@@ -6,6 +6,30 @@
     <title>Tax Computer</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .tax-container { max-width: 920px; margin: 24px auto; padding: 24px; background: #ffffff; border-radius: 14px; box-shadow: 0 8px 24px rgba(16,24,40,0.08); }
+        .tax-inputs { display: grid; gap: 16px; grid-template-columns: 1fr; }
+        @media (min-width: 768px) { .tax-inputs { grid-template-columns: repeat(2, 1fr); } .tax-buttons { grid-column: 1 / -1; } }
+        .tax-field { display: flex; flex-direction: column; gap: 8px; }
+        .tax-field label { font-weight: 600; color: #344054; }
+        .tax-field input, .tax-field select { padding: 10px 12px; border: 1px solid #D0D5DD; border-radius: 10px; background: #fff; color: #101828; outline: none; transition: border-color 150ms, box-shadow 150ms; }
+        .tax-field input:focus, .tax-field select:focus { border-color: #7F56D9; box-shadow: 0 0 0 4px rgba(127,86,217,0.12); }
+        .tax-buttons { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .tax-buttons button { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px; border: 1px solid #D0D5DD; background: #7F56D9; color: #fff; cursor: pointer; transition: transform 120ms ease, box-shadow 120ms ease; }
+        .tax-buttons button:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(127,86,217,0.25); }
+        .tax-buttons #resetTaxBtn { background: #fff; color: #344054; }
+        .tax-summary { margin-top: 20px; padding: 16px; background: #F9FAFB; border: 1px solid #EAECF0; border-radius: 12px; }
+        .tax-summary h2 { margin: 0 0 8px; font-size: 1.1rem; color: #1D2939; }
+        .tax-summary ul { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr; gap: 8px; }
+        @media (min-width: 768px) { .tax-summary ul { grid-template-columns: repeat(2, 1fr); } }
+        .tax-summary li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; background: #fff; border: 1px solid #EAECF0; border-radius: 10px; }
+        .tax-summary li span { color: #667085; }
+        .tax-reference { margin-top: 24px; }
+        .tax-reference table { width: 100%; border-collapse: separate; border-spacing: 0; overflow: hidden; border: 1px solid #EAECF0; border-radius: 12px; }
+        .tax-reference th, .tax-reference td { padding: 12px; border-bottom: 1px solid #EAECF0; text-align: left; }
+        .tax-reference thead th { background: #F2F4F7; color: #344054; font-weight: 600; }
+        .tax-reference tbody tr:last-child td { border-bottom: none; }
+    </style>
 </head>
 <body class="apps-page">
     <a href="index.html" class="apps-button back-button">Home</a>
@@ -212,6 +236,46 @@
                 return {
                     annualTax,
                     bracketDescription
+                };
+            }
+
+            function computeFreelancerTax(inputs) {
+                const { regime, gross, eligible8, expenseMode, itemized } = inputs;
+                if (!Number.isFinite(gross) || gross < 0) {
+                    alert('Gross receipts must be a non-negative number.');
+                    return null;
+                }
+
+                if (regime === 'eight') {
+                    if (!eligible8) {
+                        alert('8% regime requires being Non-VAT and below the VAT threshold.');
+                        return null;
+                    }
+                    const taxableBase = Math.max(0, gross - 250000);
+                    const tax = taxableBase * 0.08;
+                    return {
+                        tax,
+                        displayBase: gross,
+                        effectiveBase: gross,
+                        description: '8% on gross over PHP 250,000'
+                    };
+                }
+
+                let netIncome;
+                if (expenseMode === 'osd') {
+                    // OSD = 40% of Gross; Taxable = 60% of Gross
+                    netIncome = gross * 0.60;
+                } else {
+                    const exp = Math.max(0, parseFloat(itemized) || 0);
+                    netIncome = Math.max(0, gross - exp);
+                }
+
+                const { annualTax, bracketDescription } = computeTax(netIncome);
+                return {
+                    tax: annualTax,
+                    displayBase: netIncome,
+                    effectiveBase: gross,
+                    description: `${bracketDescription} (Graduated on Net)`
                 };
             }
 
