@@ -12,9 +12,18 @@
 
     <div class="container apps-container tax-container">
         <h1>Tax Computer</h1>
-        <p class="apps-intro">Estimate your annual Philippine income tax based on your salary.</p>
+        <p class="apps-intro" id="introText">Estimate your annual Philippine income tax based on your salary.</p>
 
         <div class="tax-inputs">
+            <div class="tax-field">
+                <label for="taxpayerType">Taxpayer Type</label>
+                <select id="taxpayerType">
+                    <option value="employee" selected>Employee</option>
+                    <option value="freelancer">Freelancer / Self-Employed</option>
+                </select>
+            </div>
+
+            <div id="employeeInputs">
             <div class="tax-field">
                 <label for="annualIncome">Annual Income (PHP)</label>
                 <input type="number" id="annualIncome" placeholder="e.g., 450000">
@@ -22,6 +31,46 @@
             <div class="tax-field">
                 <label for="monthlyIncome">Monthly Income (PHP)</label>
                 <input type="number" id="monthlyIncome" placeholder="e.g., 37500">
+            </div>
+            </div>
+
+            <div id="freelancerInputs" hidden>
+                <div class="tax-field">
+                    <label for="grossReceipts">Annual Gross Receipts (PHP)</label>
+                    <input type="number" id="grossReceipts" placeholder="e.g., 600000">
+                </div>
+                <div class="tax-field">
+                    <label for="monthlyGross">Monthly Gross Receipts (PHP)</label>
+                    <input type="number" id="monthlyGross" placeholder="e.g., 50000">
+                </div>
+
+                <div class="tax-field">
+                    <label for="freelancerRegime">Freelancer Regime</label>
+                    <select id="freelancerRegime">
+                        <option value="graduated" selected>Graduated (TRAIN) on Net Income</option>
+                        <option value="eight">8% on Gross over PHP 250,000</option>
+                    </select>
+                </div>
+
+                <div id="graduatedOptions">
+                    <div class="tax-field">
+                        <label for="expenseMethod">Expense Method</label>
+                        <select id="expenseMethod">
+                            <option value="osd" selected>OSD (40% of Gross)</option>
+                            <option value="itemized">Itemized Expenses</option>
+                        </select>
+                    </div>
+                    <div class="tax-field" id="itemizedExpensesField" hidden>
+                        <label for="itemizedExpenses">Itemized Expenses (PHP)</label>
+                        <input type="number" id="itemizedExpenses" placeholder="e.g., 200000">
+                    </div>
+                </div>
+
+                <div id="eightOptions" hidden>
+                    <div class="tax-field">
+                        <label><input type="checkbox" id="eightEligible" checked> Non-VAT and below VAT threshold (eligible for 8%)</label>
+                    </div>
+                </div>
             </div>
             <div class="tax-field">
                 <label for="monthlyTaxInput">Monthly Tax Paid (PHP)</label>
@@ -96,6 +145,19 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const taxpayerType = document.getElementById('taxpayerType');
+            const introText = document.getElementById('introText');
+            const employeeInputs = document.getElementById('employeeInputs');
+            const freelancerInputs = document.getElementById('freelancerInputs');
+            const freelancerRegime = document.getElementById('freelancerRegime');
+            const graduatedOptions = document.getElementById('graduatedOptions');
+            const eightOptions = document.getElementById('eightOptions');
+            const expenseMethod = document.getElementById('expenseMethod');
+            const itemizedExpensesField = document.getElementById('itemizedExpensesField');
+            const itemizedExpensesInput = document.getElementById('itemizedExpenses');
+            const grossReceiptsInput = document.getElementById('grossReceipts');
+            const monthlyGrossInput = document.getElementById('monthlyGross');
+            const eightEligibleInput = document.getElementById('eightEligible');
             const annualIncomeInput = document.getElementById('annualIncome');
             const monthlyIncomeInput = document.getElementById('monthlyIncome');
             const computeTaxBtn = document.getElementById('computeTaxBtn');
@@ -183,51 +245,112 @@
             }
 
             function syncInputs(changedInput) {
-                const annualIncome = parseFloat(annualIncomeInput.value) || 0;
-                const monthlyIncome = parseFloat(monthlyIncomeInput.value) || 0;
-
-                if (changedInput === 'annual' && annualIncome > 0) {
-                    monthlyIncomeInput.value = (annualIncome / 12).toFixed(2);
-                } else if (changedInput === 'monthly' && monthlyIncome > 0) {
-                    annualIncomeInput.value = (monthlyIncome * 12).toFixed(2);
+                if (taxpayerType.value === 'employee') {
+                    const annualIncome = parseFloat(annualIncomeInput.value) || 0;
+                    const monthlyIncome = parseFloat(monthlyIncomeInput.value) || 0;
+                    if (changedInput === 'annual' && annualIncome > 0) {
+                        monthlyIncomeInput.value = (annualIncome / 12).toFixed(2);
+                    } else if (changedInput === 'monthly' && monthlyIncome > 0) {
+                        annualIncomeInput.value = (monthlyIncome * 12).toFixed(2);
+                    }
+                } else {
+                    const gross = parseFloat(grossReceiptsInput.value) || 0;
+                    const monthlyGross = parseFloat(monthlyGrossInput.value) || 0;
+                    if (changedInput === 'grossAnnual' && gross > 0) {
+                        monthlyGrossInput.value = (gross / 12).toFixed(2);
+                    } else if (changedInput === 'grossMonthly' && monthlyGross > 0) {
+                        grossReceiptsInput.value = (monthlyGross * 12).toFixed(2);
+                    }
                 }
             }
 
+            function switchMode() {
+                const isFreelancer = taxpayerType.value === 'freelancer';
+                employeeInputs.hidden = isFreelancer;
+                freelancerInputs.hidden = !isFreelancer;
+                introText.textContent = isFreelancer
+                    ? 'Estimate your Philippine income tax as a freelancer/self-employed (8% or graduated on net).'
+                    : 'Estimate your annual Philippine income tax based on your salary.';
+            }
+
+            function switchFreelancerRegime() {
+                const isEight = freelancerRegime.value === 'eight';
+                eightOptions.hidden = !isEight;
+                graduatedOptions.hidden = isEight;
+            }
+
+            function switchExpenseMethod() {
+                const isItemized = expenseMethod.value === 'itemized';
+                itemizedExpensesField.hidden = !isItemized;
+            }
+
             computeTaxBtn.addEventListener('click', () => {
-                const annualIncome = parseFloat(annualIncomeInput.value);
-                const monthlyIncome = parseFloat(monthlyIncomeInput.value);
-
-                if (!annualIncome && !monthlyIncome) {
-                    alert('Please enter either annual or monthly income.');
+                if (taxpayerType.value === 'employee') {
+                    const annualIncome = parseFloat(annualIncomeInput.value);
+                    const monthlyIncome = parseFloat(monthlyIncomeInput.value);
+                    if (!annualIncome && !monthlyIncome) {
+                        alert('Please enter either annual or monthly income.');
+                        return;
+                    }
+                    let income = annualIncome;
+                    if (!income && monthlyIncome) {
+                        income = monthlyIncome * 12;
+                    }
+                    if (income < 0) {
+                        alert('Income cannot be negative.');
+                        return;
+                    }
+                    const { annualTax, bracketDescription } = computeTax(income);
+                    const effectiveRate = income === 0 ? 0 : (annualTax / income) * 100;
+                    const monthlyTax = annualTax / 12;
+                    taxableIncomeEl.textContent = formatCurrency(income);
+                    annualTaxEl.textContent = formatCurrency(annualTax);
+                    effectiveRateEl.textContent = formatPercentage(effectiveRate);
+                    monthlyTaxEl.textContent = formatCurrency(monthlyTax);
+                    incomeBracketEl.textContent = bracketDescription;
+                    taxSummary.hidden = false;
+                    incomeSummary.hidden = true;
                     return;
                 }
 
-                let income = annualIncome;
-
-                if (!income && monthlyIncome) {
-                    income = monthlyIncome * 12;
+                const gross = parseFloat(grossReceiptsInput.value);
+                const monthlyGross = parseFloat(monthlyGrossInput.value);
+                if (!gross && !monthlyGross) {
+                    alert('Please enter either annual or monthly gross receipts.');
+                    return;
                 }
-
-                if (income < 0) {
-                    alert('Income cannot be negative.');
+                let grossAnnual = gross;
+                if (!grossAnnual && monthlyGross) {
+                    grossAnnual = monthlyGross * 12;
+                }
+                if (grossAnnual < 0) {
+                    alert('Gross receipts cannot be negative.');
                     return;
                 }
 
-                const { annualTax, bracketDescription } = computeTax(income);
-                const effectiveRate = income === 0 ? 0 : (annualTax / income) * 100;
-                const monthlyTax = annualTax / 12;
+                const regime = freelancerRegime.value;
+                const expenseMode = expenseMethod.value;
+                const itemized = itemizedExpensesInput.value;
+                const eligible8 = !!(eightEligibleInput && eightEligibleInput.checked);
+                const result = computeFreelancerTax({ regime, gross: grossAnnual, eligible8, expenseMode, itemized });
+                if (!result) return;
 
-                taxableIncomeEl.textContent = formatCurrency(income);
-                annualTaxEl.textContent = formatCurrency(annualTax);
+                const effectiveRate = result.effectiveBase === 0 ? 0 : (result.tax / result.effectiveBase) * 100;
+                const monthlyTax = result.tax / 12;
+                taxableIncomeEl.textContent = formatCurrency(result.displayBase);
+                annualTaxEl.textContent = formatCurrency(result.tax);
                 effectiveRateEl.textContent = formatPercentage(effectiveRate);
                 monthlyTaxEl.textContent = formatCurrency(monthlyTax);
-                incomeBracketEl.textContent = bracketDescription;
-
+                incomeBracketEl.textContent = result.description;
                 taxSummary.hidden = false;
                 incomeSummary.hidden = true;
             });
 
             computeIncomeBtn.addEventListener('click', () => {
+                if (taxpayerType.value === 'freelancer') {
+                    alert('Income estimation from monthly tax is currently available for Employees only.');
+                    return;
+                }
                 const monthlyTaxInput = parseFloat(document.getElementById('monthlyTaxInput').value);
 
                 if (!monthlyTaxInput) {
@@ -261,12 +384,24 @@
                 annualIncomeInput.value = '';
                 monthlyIncomeInput.value = '';
                 document.getElementById('monthlyTaxInput').value = '';
+                grossReceiptsInput.value = '';
+                monthlyGrossInput.value = '';
+                itemizedExpensesInput.value = '';
                 taxSummary.hidden = true;
                 incomeSummary.hidden = true;
             });
 
             annualIncomeInput.addEventListener('input', () => syncInputs('annual'));
             monthlyIncomeInput.addEventListener('input', () => syncInputs('monthly'));
+            grossReceiptsInput.addEventListener('input', () => syncInputs('grossAnnual'));
+            monthlyGrossInput.addEventListener('input', () => syncInputs('grossMonthly'));
+            taxpayerType.addEventListener('change', switchMode);
+            freelancerRegime.addEventListener('change', switchFreelancerRegime);
+            expenseMethod.addEventListener('change', switchExpenseMethod);
+
+            switchMode();
+            switchFreelancerRegime();
+            switchExpenseMethod();
         });
     </script>
 </body>
