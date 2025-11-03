@@ -717,6 +717,13 @@ body {
   padding: 32px;
 }
 
+/* Fluid media defaults */
+img, svg, video, canvas, audio, iframe {
+  max-width: 100%;
+  height: auto;
+}
+img, svg, video { display: block; }
+
 /* Hide Minecraft character entirely */
 .minecraft-character { display: none !important; }
 
@@ -789,6 +796,10 @@ body.savings-page.apps-page {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
+
+/* Ensure form controls don't overflow containers */
+input, select, textarea { max-width: 100%; }
+table { width: 100%; }
 
 h1 {
   text-align: center;
@@ -947,7 +958,8 @@ button:active { transform: translateY(1px); box-shadow: none; }
 .tax-inputs { background: #fffdf8; border: 1px solid #eadfce; border-radius: var(--radius); box-shadow: none; }
 .tax-field label { color: var(--muted); font-size: 0.9rem; }
 .tax-field input { background: #fff; border: 1px solid var(--border); padding: 12px; font-family: inherit; font-size: 0.95rem; color: var(--text); box-shadow: none; border-radius: 10px; }
-.tax-buttons { gap: 10px; }
+.tax-buttons { gap: 10px; flex-wrap: wrap; }
+.tax-buttons button { flex: 0 1 auto; }
 .tax-summary { background: #fffdf8; border: 1px solid #eadfce; border-radius: var(--radius); box-shadow: var(--shadow); }
 .tax-summary h2, .tax-reference h2 { color: var(--text); text-shadow: none; }
 .tax-summary span { color: var(--text); font-weight: 600; }
@@ -969,4 +981,14 @@ button:active { transform: translateY(1px); box-shadow: none; }
 @media (max-width: 600px) {
   .tax-buttons { flex-direction: column; align-items: stretch; }
   .tax-buttons button { width: 100%; }
+}
+
+/* Small-phone optimizations */
+@media (max-width: 420px) {
+  .apps-button { top: 12px; left: 12px; padding: 8px 12px; font-size: 0.85rem; }
+  .apps-button.back-button { right: 12px; }
+  .apps-page { padding-top: 88px; }
+  .container { padding: 16px; }
+  .apps-intro { font-size: 0.95rem; }
+  .tax-inputs { grid-template-columns: 1fr !important; }
 }

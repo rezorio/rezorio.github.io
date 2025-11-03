@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tagalog Wordle - Salitang Hulaan</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .wordle-container {
+            max-width: 500px;
+            margin: 24px auto;
+            padding: 24px;
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(16,24,40,0.08);
+            text-align: center;
+        }
+        
+        .game-header {
+            margin-bottom: 2rem;
+        }
+        
+        .game-header h1 {
+            color: #6b4423;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .game-header p {
+            color: #8b6f61;
+            font-size: 1rem;
+            margin: 0;
+        }
+        
+        .game-grid {
+            display: grid;
+            grid-template-rows: repeat(6, 1fr);
+            gap: 8px;
+            margin-bottom: 2rem;
+            max-width: 350px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .grid-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+        
+        .grid-cell {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #e7ddd2;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: #fff;
+            color: #3b2f2f;
+            transition: all 0.3s ease;
+        }
+        
+        .grid-cell.filled {
+            border-color: #8b6f61;
+            background: #faf7f2;
+        }
+        
+        .grid-cell.correct {
+            background: #2f855a;
+            border-color: #2f855a;
+            color: white;
+        }
+        
+        .grid-cell.present {
+            background: #d4a373;
+            border-color: #d4a373;
+            color: white;
+        }
+        
+        .grid-cell.absent {
+            background: #8b6f61;
+            border-color: #8b6f61;
+            color: white;
+        }
+        
+        .keyboard {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        
+        .key {
+            min-width: 40px;
+            height: 50px;
+            border: 1px solid #e7ddd2;
+            border-radius: 6px;
+            background: #fff;
+            color: #3b2f2f;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+        
+        .key:hover {
+            background: #f5efe6;
+            border-color: #8b6f61;
+        }
+        
+        .key.wide {
+            min-width: 80px;
+            font-size: 0.8rem;
+        }
+        
+        .key.correct {
+            background: #2f855a;
+            border-color: #2f855a;
+            color: white;
+        }
+        
+        .key.present {
+            background: #d4a373;
+            border-color: #d4a373;
+            color: white;
+        }
+        
+        .key.absent {
+            background: #8b6f61;
+            border-color: #8b6f61;
+            color: white;
+        }
+        
+        .game-message {
+            margin-top: 1rem;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .game-message.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .game-message.error {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+        
+        .game-message.info {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #dbeafe;
+        }
+        
+        .stats-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .stats-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .stat-item {
+            padding: 1rem;
+            background: #faf7f2;
+            border-radius: 8px;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #6b4423;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #8b6f61;
+        }
+        
+        @media (max-width: 600px) {
+            .wordle-container {
+                margin: 12px;
+                padding: 16px;
+            }
+            
+            .grid-cell {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+            
+            .key {
+                min-width: 32px;
+                height: 42px;
+                font-size: 0.8rem;
+            }
+            
+            .key.wide {
+                min-width: 60px;
+            }
+        }
+    </style>
+</head>
+<body class="apps-page">
+    <a href="apps.html" class="apps-button back-button">Apps</a>
+
+    <div class="container wordle-container">
+        <div class="game-header">
+            <h1>Salitang Hulaan</h1>
+            <p>Tagalog Wordle - Hulaan ang 5-letrang salita!</p>
+        </div>
+
+        <div class="game-grid" id="gameGrid">
+            <!-- Grid rows will be generated by JavaScript -->
+        </div>
+
+        <div class="keyboard" id="keyboard">
+            <!-- Keyboard will be generated by JavaScript -->
+        </div>
+
+        <div class="game-message" id="gameMessage"></div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div class="stats-modal" id="statsModal">
+        <div class="stats-content">
+            <h2>Mga Estadistika</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" id="gamesPlayed">0</div>
+                    <div class="stat-label">Nilaro</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="winPercentage">0</div>
+                    <div class="stat-label">% Panalo</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="currentStreak">0</div>
+                    <div class="stat-label">Sunod-sunod</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="maxStreak">0</div>
+                    <div class="stat-label">Pinakamahaba</div>
+                </div>
+            </div>
+            <button onclick="closeStats()" style="margin-top: 1rem; padding: 10px 20px; background: #6b4423; color: white; border: none; border-radius: 6px; cursor: pointer;">Isara</button>
+        </div>
+    </div>
+
+    <script src="tagalog-wordle.js"></script>
+</body>
+</html>
