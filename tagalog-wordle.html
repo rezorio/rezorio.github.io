@@ -9,6 +9,7 @@
     <style>
         .wordle-container {
             max-width: 500px;
+            width: 100%;
             margin: 24px auto;
             padding: 24px;
             background: #ffffff;
@@ -39,6 +40,7 @@
             gap: 8px;
             margin-bottom: 2rem;
             max-width: 350px;
+            width: 100%;
             margin-left: auto;
             margin-right: auto;
         }
@@ -326,6 +328,31 @@
 
         /* Small mobile responsive styles */
         @media (max-width: 480px) {
+            .grid-cell {
+                width: 100%;
+                height: 0;
+                padding-bottom: 100%;
+                position: relative;
+                font-size: 1.1rem;
+            }
+            
+            .grid-cell span {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+            
+            .key {
+                min-width: 8%;
+                height: 36px;
+                font-size: 0.7rem;
+            }
+            
+            .key.wide {
+                min-width: 15%;
+            }
+            
             .wordle-container {
                 margin: 4px;
                 padding: 12px;
@@ -349,8 +376,6 @@
             }
             
             .grid-cell {
-                width: 45px;
-                height: 45px;
                 font-size: 1.1rem;
             }
             
@@ -360,7 +385,6 @@
             }
             
             .key {
-                min-width: 26px;
                 height: 36px;
                 font-size: 0.7rem;
             }
