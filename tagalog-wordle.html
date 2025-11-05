@@ -218,10 +218,66 @@
             color: #8b6f61;
         }
         
+        /* Tablet responsive styles */
+        @media (max-width: 768px) {
+            .wordle-container {
+                margin: 16px;
+                padding: 20px;
+            }
+            
+            .game-header h1 {
+                font-size: 1.75rem;
+            }
+            
+            .game-header p {
+                font-size: 0.95rem;
+            }
+            
+            .grid-cell {
+                width: 55px;
+                height: 55px;
+                font-size: 1.3rem;
+            }
+            
+            .key {
+                min-width: 36px;
+                height: 45px;
+                font-size: 0.85rem;
+            }
+            
+            .key.wide {
+                min-width: 70px;
+            }
+            
+            .stats-content {
+                padding: 1.5rem;
+                width: 95%;
+            }
+        }
+
+        /* Mobile responsive styles */
         @media (max-width: 600px) {
             .wordle-container {
-                margin: 12px;
+                margin: 8px;
                 padding: 16px;
+            }
+            
+            .game-header h1 {
+                font-size: 1.5rem;
+                margin-bottom: 0.3rem;
+            }
+            
+            .game-header p {
+                font-size: 0.9rem;
+            }
+            
+            .game-grid {
+                max-width: 300px;
+                gap: 6px;
+            }
+            
+            .grid-row {
+                gap: 6px;
             }
             
             .grid-cell {
@@ -230,14 +286,191 @@
                 font-size: 1.2rem;
             }
             
+            .keyboard-row {
+                gap: 4px;
+                margin-bottom: 6px;
+            }
+            
             .key {
-                min-width: 32px;
-                height: 42px;
-                font-size: 0.8rem;
+                min-width: 30px;
+                height: 40px;
+                font-size: 0.75rem;
             }
             
             .key.wide {
-                min-width: 60px;
+                min-width: 55px;
+                font-size: 0.7rem;
+            }
+            
+            .stats-content {
+                padding: 1.25rem;
+                width: 95%;
+            }
+            
+            .stats-grid {
+                gap: 0.75rem;
+            }
+            
+            .stat-item {
+                padding: 0.75rem;
+            }
+            
+            .stat-number {
+                font-size: 1.5rem;
+            }
+            
+            .stat-label {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Small mobile responsive styles */
+        @media (max-width: 480px) {
+            .wordle-container {
+                margin: 4px;
+                padding: 12px;
+            }
+            
+            .game-header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .game-header p {
+                font-size: 0.85rem;
+            }
+            
+            .game-grid {
+                max-width: 280px;
+                gap: 4px;
+            }
+            
+            .grid-row {
+                gap: 4px;
+            }
+            
+            .grid-cell {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+            
+            .keyboard-row {
+                gap: 3px;
+                margin-bottom: 5px;
+            }
+            
+            .key {
+                min-width: 26px;
+                height: 36px;
+                font-size: 0.7rem;
+            }
+            
+            .key.wide {
+                min-width: 48px;
+                font-size: 0.65rem;
+            }
+            
+            .stats-content {
+                padding: 1rem;
+                width: 98%;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.5rem;
+            }
+            
+            .stat-item {
+                padding: 0.5rem;
+            }
+            
+            .stat-number {
+                font-size: 1.3rem;
+            }
+            
+            .stat-label {
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Large screen responsive styles */
+        @media (min-width: 1200px) {
+            .wordle-container {
+                max-width: 600px;
+                padding: 32px;
+            }
+            
+            .game-header h1 {
+                font-size: 2.25rem;
+            }
+            
+            .game-header p {
+                font-size: 1.1rem;
+            }
+            
+            .game-grid {
+                max-width: 400px;
+                gap: 10px;
+            }
+            
+            .grid-row {
+                gap: 10px;
+            }
+            
+            .grid-cell {
+                width: 70px;
+                height: 70px;
+                font-size: 1.75rem;
+            }
+            
+            .keyboard-row {
+                gap: 8px;
+                margin-bottom: 10px;
+            }
+            
+            .key {
+                min-width: 45px;
+                height: 55px;
+                font-size: 1rem;
+            }
+            
+            .key.wide {
+                min-width: 90px;
+            }
+        }
+
+        /* Landscape orientation adjustments for mobile */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .wordle-container {
+                padding: 12px;
+            }
+            
+            .game-header {
+                margin-bottom: 1rem;
+            }
+            
+            .game-header h1 {
+                font-size: 1.4rem;
+                margin-bottom: 0.2rem;
+            }
+            
+            .game-header p {
+                font-size: 0.8rem;
+            }
+            
+            .game-grid {
+                margin-bottom: 1rem;
+            }
+            
+            .grid-cell {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+            
+            .key {
+                height: 35px;
+                font-size: 0.7rem;
             }
         }
     </style>
@@ -273,7 +506,7 @@
                 </div>
                 <div class="stat-item">
                     <div class="stat-number" id="winPercentage">0</div>
-                    <div class="stat-label">% Panalo</div>
+                    <div class="stat-label">% Paldo</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-number" id="currentStreak">0</div>
