@@ -217,7 +217,7 @@ Do not include any other text outside a single fenced JSON block.`;
           updateStatus('Please enter a stock symbol, e.g., AAPL or SMPH.', 'error');
           return;
         }
-        if (!GEMINI_API_KEY || GEMINI_API_KEY === 'AIzaSyAi9o1H0rBWqafr5k3op4_iKEn5q80c2Rc') {
+        if (!GEMINI_API_KEY?.trim()) {
           updateStatus('Set your Gemini API key inside GEMINI_API_KEY in the code.', 'error');
           return;
         }
