@@ -52,9 +52,9 @@
     </section>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docx@8.3.1/build/docx.min.js" integrity="sha256-x/g1N3jqILz2vFEGZmqktVv8F0v0bB1jAJuzMdZUKNs=" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://unpkg.com/docx@8.3.0/build/docx.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script>
     (function () {
       const fileInput = document.getElementById('pdfFile');
@@ -65,12 +65,26 @@
 
       const pdfjsLib = window.pdfjsLib;
       if (!pdfjsLib) {
-        updateStatus('The PDF engine failed to load. Refresh the page and check your connection.', 'error');
+        console.error('pdfjsLib failed to load');
+        statusArea.setAttribute('data-tone', 'error');
+        statusArea.querySelector('strong').innerHTML = '<i class="fas fa-triangle-exclamation"></i>&nbsp;Engine unavailable';
+        statusArea.querySelector('p').textContent = 'The PDF engine did not load. Check your internet connection and refresh.';
         convertBtn.disabled = true;
+        clearBtn.disabled = true;
         return;
       }
 
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+
+      if (!window.docx) {
+        console.error('docx library failed to load');
+        statusArea.setAttribute('data-tone', 'error');
+        statusArea.querySelector('strong').innerHTML = '<i class="fas fa-triangle-exclamation"></i>&nbsp;Exporter unavailable';
+        statusArea.querySelector('p').textContent = 'The Word exporter did not load. Refresh the page to try again.';
+        convertBtn.disabled = true;
+        clearBtn.disabled = true;
+        return;
+      }
 
       /**
        * Updates the live region with helpful feedback for the user.
