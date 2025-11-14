@@ -52,8 +52,8 @@
     </section>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha512-hGRV/4f4tGUmeC62V1D6jGg1FeZi3R5fLzz6Z20RWIEo0bNLSkPZs/fC0AzJU+vzV1K18eGJLe/SuPRKkISIuw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js" integrity="sha512-rw/RcTszgxYW/nPa+ZzTUoo5JB0X1SPT4AKPI1ok0dkEqkwXmpFxyrYVNUaM+2OQbqR83w208/wy6iMa4Y+AJw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/docx@8.3.1/build/docx.min.js" integrity="sha256-x/g1N3jqILz2vFEGZmqktVv8F0v0bB1jAJuzMdZUKNs=" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script>
     (function () {
@@ -63,7 +63,14 @@
       const docxNameInput = document.getElementById('docxName');
       const statusArea = document.getElementById('statusArea');
 
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const pdfjsLib = window.pdfjsLib;
+      if (!pdfjsLib) {
+        updateStatus('The PDF engine failed to load. Refresh the page and check your connection.', 'error');
+        convertBtn.disabled = true;
+        return;
+      }
+
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
 
       /**
        * Updates the live region with helpful feedback for the user.
@@ -98,7 +105,6 @@
       /**
        * Creates a Word document blob from an array of page strings.
        * @param {string[]} pages
-       * @param {string} baseName
        * @returns {Promise<Blob>}
        */
       async function buildDocxFromText(pages) {
