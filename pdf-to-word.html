@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDF to Word Converter</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+<body class="apps-page converter-page">
+  <a href="apps.html" class="apps-button back-button">Apps</a>
+
+  <div class="container">
+    <h1>PDF to Word Converter</h1>
+    <p class="apps-intro" style="text-align:center">
+      Upload a PDF document and instantly turn it into an editable Word file.
+    </p>
+
+    <div class="tax-inputs converter-inputs" role="form" aria-label="PDF to Word converter">
+      <div class="tax-field">
+        <label for="pdfFile">PDF file</label>
+        <input id="pdfFile" type="file" accept="application/pdf" />
+      </div>
+
+      <div class="tax-field">
+        <label for="docxName">Output name (optional)</label>
+        <input id="docxName" type="text" placeholder="e.g. meeting-notes.docx" />
+      </div>
+
+      <div class="tax-buttons converter-buttons">
+        <button id="convertBtn" type="button">
+          <i class="fas fa-file-export"></i>&nbsp;Convert to Word
+        </button>
+        <button id="clearBtn" type="button" class="ghost-button">
+          <i class="fas fa-eraser"></i>&nbsp;Clear
+        </button>
+      </div>
+    </div>
+
+    <div class="converter-status" id="statusArea" role="status" aria-live="polite">
+      <strong><i class="fas fa-info-circle"></i>&nbsp;Ready when you are</strong>
+      <p>Choose a PDF, then tap <em>Convert to Word</em>. Large PDFs may take a little longer.</p>
+    </div>
+
+    <section class="converter-notes" aria-label="Conversion notes">
+      <h2><i class="fas fa-circle-question"></i>&nbsp;Tips</h2>
+      <ul>
+        <li>Best for text-based PDFs. Complex layouts and images are exported as plain text.</li>
+        <li>All processing happens in your browser—nothing is uploaded.</li>
+        <li>After converting, your Word file downloads automatically.</li>
+      </ul>
+    </section>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha512-hGRV/4f4tGUmeC62V1D6jGg1FeZi3R5fLzz6Z20RWIEo0bNLSkPZs/fC0AzJU+vzV1K18eGJLe/SuPRKkISIuw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js" integrity="sha512-rw/RcTszgxYW/nPa+ZzTUoo5JB0X1SPT4AKPI1ok0dkEqkwXmpFxyrYVNUaM+2OQbqR83w208/wy6iMa4Y+AJw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.3.1/build/docx.min.js" integrity="sha256-x/g1N3jqILz2vFEGZmqktVv8F0v0bB1jAJuzMdZUKNs=" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+    (function () {
+      const fileInput = document.getElementById('pdfFile');
+      const convertBtn = document.getElementById('convertBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const docxNameInput = document.getElementById('docxName');
+      const statusArea = document.getElementById('statusArea');
+
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+      /**
+       * Updates the live region with helpful feedback for the user.
+       * @param {string} message
+       * @param {('info'|'success'|'error')} tone
+       */
+      function updateStatus(message, tone = 'info') {
+        statusArea.setAttribute('data-tone', tone);
+        statusArea.querySelector('p').textContent = message;
+        const toneIcon = tone === 'success' ? 'fa-check-circle' : tone === 'error' ? 'fa-triangle-exclamation' : 'fa-info-circle';
+        statusArea.querySelector('strong').innerHTML = `<i class="fas ${toneIcon}"></i>&nbsp;${tone === 'success' ? 'Done!' : tone === 'error' ? 'Something went wrong' : 'Working on it'}`;
+      }
+
+      /**
+       * Reads and extracts plain text for each page of a PDF.
+       * @param {import('pdfjs-dist').PDFDocumentProxy} pdfDocument
+       * @returns {Promise<string[]>}
+       */
+      async function extractTextFromPDF(pdfDocument) {
+        const pages = [];
+        for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber += 1) {
+          updateStatus(`Reading page ${pageNumber} of ${pdfDocument.numPages}...`);
+          const page = await pdfDocument.getPage(pageNumber);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items.map((token) => token.str).join(' ');
+          const cleaned = pageText.replace(/\s+/g, ' ').trim();
+          pages.push(cleaned);
+        }
+        return pages;
+      }
+
+      /**
+       * Creates a Word document blob from an array of page strings.
+       * @param {string[]} pages
+       * @param {string} baseName
+       * @returns {Promise<Blob>}
+       */
+      async function buildDocxFromText(pages) {
+        const { Document, Packer, Paragraph, HeadingLevel, TextRun, SectionType } = docx;
+        const children = [];
+
+        pages.forEach((pageText, idx) => {
+          const pageHeading = new Paragraph({
+            text: `Page ${idx + 1}`,
+            heading: HeadingLevel.HEADING_3,
+            spacing: { after: 120 },
+          });
+          children.push(pageHeading);
+
+          if (!pageText) {
+            children.push(new Paragraph({ text: '[No extractable text]', spacing: { after: 240 } }));
+            return;
+          }
+
+          pageText.split(/(?<=\.)\s+(?=[A-Z0-9])/).forEach((sentence) => {
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ text: sentence.trim(), size: 22 })],
+                spacing: { after: 120 },
+              })
+            );
+          });
+        });
+
+        const doc = new Document({
+          sections: [
+            {
+              properties: { type: SectionType.CONTINUOUS },
+              children,
+            },
+          ],
+        });
+
+        updateStatus('Packaging Word document...', 'info');
+        return Packer.toBlob(doc);
+      }
+
+      function resetForm() {
+        fileInput.value = '';
+        docxNameInput.value = '';
+        updateStatus('Choose a PDF, then tap Convert to Word. Large PDFs may take a little longer.', 'info');
+      }
+
+      convertBtn.addEventListener('click', async () => {
+        const file = fileInput.files?.[0];
+        if (!file) {
+          updateStatus('Please choose a PDF file to convert.', 'error');
+          return;
+        }
+        if (file.type !== 'application/pdf') {
+          updateStatus('Only PDF files are supported right now.', 'error');
+          return;
+        }
+
+        try {
+          updateStatus('Opening your PDF...', 'info');
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+          const pages = await extractTextFromPDF(pdf);
+          const blob = await buildDocxFromText(pages);
+
+          const suggestedName = docxNameInput.value.trim() || `${file.name.replace(/\.pdf$/i, '') || 'converted'}-export.docx`;
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = suggestedName.endsWith('.docx') ? suggestedName : `${suggestedName}.docx`;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+
+          updateStatus('Your Word file is ready. Check your downloads folder!', 'success');
+        } catch (error) {
+          console.error(error);
+          updateStatus('We could not convert that PDF. Try a different file or simplify it.', 'error');
+        }
+      });
+
+      clearBtn.addEventListener('click', () => {
+        resetForm();
+      });
+
+      statusArea.querySelector('strong').innerHTML = '<i class="fas fa-info-circle"></i>&nbsp;Ready when you are';
+    })();
+  </script>
+</body>
+</html>
