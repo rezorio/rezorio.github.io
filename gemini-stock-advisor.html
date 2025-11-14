@@ -6,7 +6,6 @@
   <title>Gemini Stock Advisor</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body class="apps-page advisor-page">
   <a href="apps.html" class="apps-button back-button">Apps</a>
@@ -14,7 +13,7 @@
   <div class="container">
     <h1>Gemini Stock Advisor</h1>
     <p class="apps-intro" style="text-align:center">
-      Generate 6-month outlooks for Philippine and US stocks with insights from Google Gemini. Enter a ticker, provide your Gemini API key, and explore the projected trend.
+      Generate a 7-day stock outlook with insights from Google Gemini. Enter a ticker, provide your API key, and review the daily guidance.
     </p>
 
     <div class="tax-inputs advisor-inputs" role="form" aria-label="Gemini stock advisor">
@@ -53,11 +52,9 @@
       <p>Enter a stock symbol and press <em>Analyze</em> to fetch Gemini insights.</p>
     </div>
 
-    <section class="advisor-chart-card" aria-label="Projected performance chart">
-      <header>
-        <h2><i class="fas fa-area-chart"></i>&nbsp;<span id="chartTitle">6-Month Projection</span></h2>
-      </header>
-      <canvas id="projectionChart" height="220"></canvas>
+    <section class="advisor-outlook" id="outlookSection" hidden aria-label="Weekly outlook">
+      <h2><i class="fas fa-calendar-week"></i>&nbsp;Weekly Outlook</h2>
+      <ol id="outlookList" class="advisor-outlook-list"></ol>
     </section>
 
     <section class="advisor-report" id="reportSection" hidden>
@@ -84,52 +81,15 @@
       const marketSelect = document.getElementById('marketSelect');
       const apiKeyInput = document.getElementById('apiKeyInput');
       const statusBox = document.getElementById('statusBox');
-      const chartTitle = document.getElementById('chartTitle');
       const guidanceText = document.getElementById('guidanceText');
       const reportSection = document.getElementById('reportSection');
+      const outlookSection = document.getElementById('outlookSection');
+      const outlookList = document.getElementById('outlookList');
 
       const storedKey = localStorage.getItem('geminiApiKey');
       if (storedKey) {
         apiKeyInput.value = storedKey;
       }
-
-      const projectionChart = new Chart(document.getElementById('projectionChart'), {
-        type: 'line',
-        data: {
-          labels: [],
-          datasets: [
-            {
-              label: 'Projected price',
-              data: [],
-              borderColor: '#6b4423',
-              backgroundColor: 'rgba(107, 68, 35, 0.12)',
-              tension: 0.3,
-              fill: true,
-              pointRadius: 4,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              ticks: {
-                callback: (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value),
-              },
-              grid: { color: 'rgba(107, 68, 35, 0.08)' },
-              suggestedMin: undefined,
-              suggestedMax: undefined,
-            },
-            x: {
-              grid: { display: false },
-            },
-          },
-          plugins: {
-            legend: { display: false },
-          },
-        },
-      });
 
       /**
        * Updates the status panel with helper text.
@@ -150,19 +110,19 @@
        * @returns {string}
        */
       function buildPrompt(symbol, market) {
-        return `You are a prudent financial analyst. Provide a six-month projection for ${symbol} in the ${market} market.
-Return JSON only with the following shape:
+        return `You are a prudent financial analyst. Provide a one-week outlook (seven-day window) for ${symbol} in the ${market} market.
+Respond ONLY with JSON using this schema:
 {
-  "summary": "Short markdown-friendly paragraph",
+  "summary": "Markdown-friendly paragraph",
   "currency": "PHP or USD",
-  "monthlyPoints": [
-    { "month": "2024-11", "price": 123.45 },
-    ... exactly 6 entries starting from current month ...
+  "weeklyOutlook": [
+    { "day": "2024-11-18", "prediction": "Trend insight", "confidence": "low|medium|high", "priceTarget": 123.45 }
+    ... exactly 7 entries covering the next seven calendar days ...
   ],
   "keyDrivers": ["factor", "factor"],
   "riskFactors": ["risk", "risk"]
 }
-Use realistic market reasoning. Respond with JSON fenced in triple backticks.`;
+Do not include any other text outside a single fenced JSON block.`;
       }
 
       /**
@@ -176,8 +136,8 @@ Use realistic market reasoning. Respond with JSON fenced in triple backticks.`;
           throw new Error('Gemini response missing JSON block.');
         }
         const payload = JSON.parse(match[1]);
-        if (!Array.isArray(payload.monthlyPoints) || payload.monthlyPoints.length === 0) {
-          throw new Error('Gemini response missing monthly points.');
+        if (!Array.isArray(payload.weeklyOutlook) || payload.weeklyOutlook.length === 0) {
+          throw new Error('Gemini response missing weekly outlook.');
         }
         return payload;
       }
@@ -219,50 +179,38 @@ Use realistic market reasoning. Respond with JSON fenced in triple backticks.`;
         return parseAdvisoryResponse(textResult);
       }
 
-      /**
-       * Renders the projection chart.
-       * @param {{month: string, price: number}[]} points
-       * @param {string} currency
-       */
-      function toMonthLabel(monthValue, fallbackIndex) {
-        if (typeof monthValue === 'string') {
-          const parsed = new Date(monthValue);
-          if (!Number.isNaN(parsed.getTime())) {
-            return parsed.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-          }
-        }
-        const base = new Date();
-        base.setMonth(base.getMonth() + fallbackIndex);
-        return base.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-      }
-
-      function renderChart(points, currency) {
-        const sanitized = points
-          .map((point, index) => ({
-            label: toMonthLabel(point.month, index),
-            price: Number(point.price),
-          }))
-          .filter((item) => Number.isFinite(item.price) && item.price >= 0);
-
-        if (!sanitized.length) {
-          throw new Error('Gemini returned invalid pricing data. Try again.');
+      function renderOutlook(outlook, currency) {
+        if (!Array.isArray(outlook) || outlook.length === 0) {
+          throw new Error('Gemini response missing daily predictions.');
         }
 
-        const prices = sanitized.map((item) => item.price);
-        const [minPrice, maxPrice] = [Math.min(...prices), Math.max(...prices)];
-        const spread = Math.max(maxPrice - minPrice, (maxPrice || 1) * 0.1);
-        const padding = spread * 0.15;
-
-        projectionChart.data.labels = sanitized.map((item) => item.label);
-        projectionChart.data.datasets[0].data = prices;
-        projectionChart.options.scales.y.ticks.callback = (value) => new Intl.NumberFormat('en-US', {
+        const fmt = new Intl.NumberFormat('en-US', {
           style: 'currency',
           currency: currency.toUpperCase() === 'PHP' ? 'PHP' : 'USD',
           maximumFractionDigits: 2,
-        }).format(value);
-        projectionChart.options.scales.y.suggestedMin = Math.max(0, minPrice - padding);
-        projectionChart.options.scales.y.suggestedMax = maxPrice + padding;
-        projectionChart.update();
+        });
+
+        const items = outlook.map((item, index) => {
+          let date = typeof item.day === 'string' ? new Date(item.day) : new Date();
+          if (Number.isNaN(date.getTime())) {
+            date = new Date();
+            date.setDate(date.getDate() + index);
+          }
+          const formattedDate = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+          const priceTarget = Number.isFinite(Number(item.priceTarget)) ? fmt.format(Number(item.priceTarget)) : '—';
+          const confidence = (item.confidence || 'unknown').toUpperCase();
+          const insight = item.prediction || 'No insight provided.';
+          return `<li>
+            <div class="outlook-date">${formattedDate}</div>
+            <div class="outlook-body">
+              <p>${insight}</p>
+              <div class="outlook-meta"><span>Target: ${priceTarget}</span><span>Confidence: ${confidence}</span></div>
+            </div>
+          </li>`;
+        });
+
+        outlookList.innerHTML = items.join('');
+        outlookSection.hidden = false;
       }
 
       function renderReport(payload, symbol) {
@@ -270,7 +218,6 @@ Use realistic market reasoning. Respond with JSON fenced in triple backticks.`;
         const drivers = payload.keyDrivers?.length ? `<h3>Key Drivers</h3><ul>${payload.keyDrivers.map((d) => `<li>${d}</li>`).join('')}</ul>` : '';
         const risks = payload.riskFactors?.length ? `<h3>Risks to watch</h3><ul>${payload.riskFactors.map((r) => `<li>${r}</li>`).join('')}</ul>` : '';
         guidanceText.innerHTML = `<p>${payload.summary}</p>${drivers}${risks}`;
-        chartTitle.textContent = `${symbol.toUpperCase()} • 6-Month Projection`;
       }
 
       analyzeBtn.addEventListener('click', async () => {
@@ -294,9 +241,9 @@ Use realistic market reasoning. Respond with JSON fenced in triple backticks.`;
 
         try {
           const payload = await requestGemini(symbol, market, apiKey);
-          renderChart(payload.monthlyPoints, payload.currency || 'USD');
+          renderOutlook(payload.weeklyOutlook, payload.currency || 'USD');
           renderReport(payload, symbol);
-          updateStatus('Review the chart and guidance below.', 'success');
+          updateStatus('Review the weekly outlook and guidance below.', 'success');
         } catch (error) {
           console.error(error);
           updateStatus(error.message, 'error');
@@ -313,10 +260,8 @@ Use realistic market reasoning. Respond with JSON fenced in triple backticks.`;
         localStorage.removeItem('geminiApiKey');
         reportSection.hidden = true;
         guidanceText.innerHTML = '';
-        chartTitle.textContent = '6-Month Projection';
-        projectionChart.data.labels = [];
-        projectionChart.data.datasets[0].data = [];
-        projectionChart.update();
+        outlookSection.hidden = true;
+        outlookList.innerHTML = '';
         updateStatus('Cleared inputs. Paste a stock symbol and key to try again.', 'info');
       });
     })();

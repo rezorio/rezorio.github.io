@@ -1047,7 +1047,7 @@ button:active { transform: translateY(1px); box-shadow: none; }
 .advisor-status strong { display: flex; align-items: center; gap: 8px; font-weight: 700; color: inherit; }
 .advisor-status p { margin: 0; color: var(--muted); font-size: 0.95rem; }
 
-.advisor-chart-card {
+.advisor-outlook {
   background: #fffdf8;
   border: 1px solid #eadfce;
   border-radius: var(--radius);
@@ -1055,8 +1055,12 @@ button:active { transform: translateY(1px); box-shadow: none; }
   box-shadow: var(--shadow);
   margin-bottom: 22px;
 }
-.advisor-chart-card header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.advisor-chart-card h2 { font-size: 1.1rem; display: flex; align-items: center; gap: 10px; margin: 0; }
+.advisor-outlook h2 { font-size: 1.1rem; display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.advisor-outlook-list { list-style: decimal; padding-left: 22px; display: grid; gap: 14px; }
+.advisor-outlook-list li { display: grid; gap: 6px; }
+.outlook-date { font-weight: 600; color: var(--text); }
+.outlook-body p { margin: 0; color: var(--muted); }
+.outlook-meta { display: flex; gap: 16px; font-size: 0.85rem; color: var(--muted); flex-wrap: wrap; }
 
 .advisor-report {
   background: #fff;
@@ -1084,7 +1088,7 @@ button:active { transform: translateY(1px); box-shadow: none; }
 @media (max-width: 640px) {
   .advisor-buttons { flex-direction: column; align-items: stretch; }
   .advisor-buttons button { width: 100%; }
-  .advisor-chart-card { padding: 18px; }
+  .advisor-outlook { padding: 18px; }
 }
 
 /* Responsive tweaks */
