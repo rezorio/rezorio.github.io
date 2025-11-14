@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gemini Stock Advisor</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body class="apps-page advisor-page">
+  <a href="apps.html" class="apps-button back-button">Apps</a>
+
+  <div class="container">
+    <h1>Gemini Stock Advisor</h1>
+    <p class="apps-intro" style="text-align:center">
+      Generate 6-month outlooks for Philippine and US stocks with insights from Google Gemini. Enter a ticker, provide your Gemini API key, and explore the projected trend.
+    </p>
+
+    <div class="tax-inputs advisor-inputs" role="form" aria-label="Gemini stock advisor">
+      <div class="tax-field">
+        <label for="tickerInput">Stock symbol</label>
+        <input id="tickerInput" type="text" placeholder="e.g. PSEI, AAPL" autocapitalize="characters" />
+      </div>
+
+      <div class="tax-field">
+        <label for="marketSelect">Market</label>
+        <select id="marketSelect">
+          <option value="philippines">Philippines</option>
+          <option value="us">United States</option>
+          <option value="global">Global</option>
+        </select>
+      </div>
+
+      <div class="tax-field">
+        <label for="apiKeyInput">Gemini API key</label>
+        <input id="apiKeyInput" type="password" placeholder="Paste your key" autocomplete="off" />
+        <small class="field-hint">Stored only in this browser (local storage). Remove anytime with "Clear".</small>
+      </div>
+
+      <div class="tax-buttons advisor-buttons">
+        <button id="analyzeBtn" type="button">
+          <i class="fas fa-chart-line"></i>&nbsp;Analyze 6 Months
+        </button>
+        <button id="clearBtn" type="button" class="ghost-button">
+          <i class="fas fa-eraser"></i>&nbsp;Clear
+        </button>
+      </div>
+    </div>
+
+    <div class="advisor-status" id="statusBox" role="status" aria-live="polite">
+      <strong><i class="fas fa-info-circle"></i>&nbsp;Waiting for analysis</strong>
+      <p>Enter a stock symbol and press <em>Analyze</em> to fetch Gemini insights.</p>
+    </div>
+
+    <section class="advisor-chart-card" aria-label="Projected performance chart">
+      <header>
+        <h2><i class="fas fa-area-chart"></i>&nbsp;<span id="chartTitle">6-Month Projection</span></h2>
+      </header>
+      <canvas id="projectionChart" height="220"></canvas>
+    </section>
+
+    <section class="advisor-report" id="reportSection" hidden>
+      <h2><i class="fas fa-comments"></i>&nbsp;Gemini Guidance</h2>
+      <article id="guidanceText"></article>
+    </section>
+
+    <section class="advisor-notes" aria-label="Usage notes">
+      <h2><i class="fas fa-key"></i>&nbsp;Before you begin</h2>
+      <ul>
+        <li>You need a <strong>Google Gemini API key</strong>. Create one in Google AI Studio and paste it above.</li>
+        <li>Keep your key private. It never leaves your browser except for Gemini API requests.</li>
+        <li>Outputs are AI-generated forecasts — verify with real market data before making trades.</li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
+      const analyzeBtn = document.getElementById('analyzeBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const tickerInput = document.getElementById('tickerInput');
+      const marketSelect = document.getElementById('marketSelect');
+      const apiKeyInput = document.getElementById('apiKeyInput');
+      const statusBox = document.getElementById('statusBox');
+      const chartTitle = document.getElementById('chartTitle');
+      const guidanceText = document.getElementById('guidanceText');
+      const reportSection = document.getElementById('reportSection');
+
+      const storedKey = localStorage.getItem('geminiApiKey');
+      if (storedKey) {
+        apiKeyInput.value = storedKey;
+      }
+
+      const projectionChart = new Chart(document.getElementById('projectionChart'), {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Projected price',
+              data: [],
+              borderColor: '#6b4423',
+              backgroundColor: 'rgba(107, 68, 35, 0.12)',
+              tension: 0.3,
+              fill: true,
+              pointRadius: 4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              ticks: {
+                callback: (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value),
+              },
+              grid: { color: 'rgba(107, 68, 35, 0.08)' },
+            },
+            x: {
+              grid: { display: false },
+            },
+          },
+          plugins: {
+            legend: { display: false },
+          },
+        },
+      });
+
+      /**
+       * Updates the status panel with helper text.
+       * @param {string} message
+       * @param {('info'|'success'|'error')} tone
+       */
+      function updateStatus(message, tone = 'info') {
+        statusBox.dataset.tone = tone;
+        const toneIcon = tone === 'success' ? 'fa-check-circle' : tone === 'error' ? 'fa-triangle-exclamation' : 'fa-info-circle';
+        statusBox.querySelector('strong').innerHTML = `<i class="fas ${toneIcon}"></i>&nbsp;${tone === 'success' ? 'Analysis ready' : tone === 'error' ? 'Request failed' : 'Working'}`;
+        statusBox.querySelector('p').textContent = message;
+      }
+
+      /**
+       * Builds a structured prompt for Gemini.
+       * @param {string} symbol
+       * @param {string} market
+       * @returns {string}
+       */
+      function buildPrompt(symbol, market) {
+        return `You are a prudent financial analyst. Provide a six-month projection for ${symbol} in the ${market} market.
+Return JSON only with the following shape:
+{
+  "summary": "Short markdown-friendly paragraph",
+  "currency": "PHP or USD",
+  "monthlyPoints": [
+    { "month": "2024-11", "price": 123.45 },
+    ... exactly 6 entries starting from current month ...
+  ],
+  "keyDrivers": ["factor", "factor"],
+  "riskFactors": ["risk", "risk"]
+}
+Use realistic market reasoning. Respond with JSON fenced in triple backticks.`;
+      }
+
+      /**
+       * Parses Gemini text output to extract JSON payload.
+       * @param {string} text
+       * @returns {{ summary: string, currency: string, monthlyPoints: {month: string, price: number}[], keyDrivers: string[], riskFactors: string[] }}
+       */
+      function parseAdvisoryResponse(text) {
+        const match = text.match(/```json\s*([\s\S]*?)```/i) || text.match(/```\s*([\s\S]*?)```/i);
+        if (!match) {
+          throw new Error('Gemini response missing JSON block.');
+        }
+        const payload = JSON.parse(match[1]);
+        if (!Array.isArray(payload.monthlyPoints) || payload.monthlyPoints.length === 0) {
+          throw new Error('Gemini response missing monthly points.');
+        }
+        return payload;
+      }
+
+      /**
+       * Calls Gemini API for advisory data.
+       * @param {string} symbol
+       * @param {string} market
+       * @param {string} apiKey
+       * @returns {Promise<any>}
+       */
+      async function requestGemini(symbol, market, apiKey) {
+        const response = await fetch(`${API_URL}?key=${encodeURIComponent(apiKey)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: buildPrompt(symbol, market) }],
+              },
+            ],
+            safetySettings: [
+              { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+            ],
+          }),
+        });
+
+        if (!response.ok) {
+          const detail = await response.text();
+          throw new Error(`Gemini API error: ${response.status} ${detail}`);
+        }
+
+        const data = await response.json();
+        const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!textResult) {
+          throw new Error('No advisory text received.');
+        }
+        return parseAdvisoryResponse(textResult);
+      }
+
+      /**
+       * Renders the projection chart.
+       * @param {{month: string, price: number}[]} points
+       * @param {string} currency
+       */
+      function renderChart(points, currency) {
+        projectionChart.data.labels = points.map((point) => point.month);
+        projectionChart.data.datasets[0].data = points.map((point) => point.price);
+        projectionChart.options.scales.y.ticks.callback = (value) => new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: currency.toUpperCase() === 'PHP' ? 'PHP' : 'USD',
+          maximumFractionDigits: 2,
+        }).format(value);
+        projectionChart.update();
+      }
+
+      function renderReport(payload, symbol) {
+        reportSection.hidden = false;
+        const drivers = payload.keyDrivers?.length ? `<h3>Key Drivers</h3><ul>${payload.keyDrivers.map((d) => `<li>${d}</li>`).join('')}</ul>` : '';
+        const risks = payload.riskFactors?.length ? `<h3>Risks to watch</h3><ul>${payload.riskFactors.map((r) => `<li>${r}</li>`).join('')}</ul>` : '';
+        guidanceText.innerHTML = `<p>${payload.summary}</p>${drivers}${risks}`;
+        chartTitle.textContent = `${symbol.toUpperCase()} • 6-Month Projection`;
+      }
+
+      analyzeBtn.addEventListener('click', async () => {
+        const symbol = tickerInput.value.trim().toUpperCase();
+        const apiKey = apiKeyInput.value.trim();
+        const market = marketSelect.value;
+
+        if (!symbol) {
+          updateStatus('Please enter a stock symbol, e.g., AAPL or SMPH.', 'error');
+          return;
+        }
+        if (!apiKey) {
+          updateStatus('Paste your Gemini API key to continue.', 'error');
+          return;
+        }
+
+        localStorage.setItem('geminiApiKey', apiKey);
+        updateStatus('Contacting Gemini for projections...', 'info');
+        analyzeBtn.disabled = true;
+        clearBtn.disabled = true;
+
+        try {
+          const payload = await requestGemini(symbol, market, apiKey);
+          renderChart(payload.monthlyPoints, payload.currency || 'USD');
+          renderReport(payload, symbol);
+          updateStatus('Review the chart and guidance below.', 'success');
+        } catch (error) {
+          console.error(error);
+          updateStatus(error.message, 'error');
+        } finally {
+          analyzeBtn.disabled = false;
+          clearBtn.disabled = false;
+        }
+      });
+
+      clearBtn.addEventListener('click', () => {
+        tickerInput.value = '';
+        marketSelect.value = 'philippines';
+        apiKeyInput.value = '';
+        localStorage.removeItem('geminiApiKey');
+        reportSection.hidden = true;
+        guidanceText.innerHTML = '';
+        chartTitle.textContent = '6-Month Projection';
+        projectionChart.data.labels = [];
+        projectionChart.data.datasets[0].data = [];
+        projectionChart.update();
+        updateStatus('Cleared inputs. Paste a stock symbol and key to try again.', 'info');
+      });
+    })();
+  </script>
+</body>
+</html>
