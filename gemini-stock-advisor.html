@@ -31,15 +31,9 @@
         </select>
       </div>
 
-      <div class="tax-field">
-        <label for="apiKeyInput">Gemini API key</label>
-        <input id="apiKeyInput" type="password" placeholder="Paste your key" autocomplete="off" />
-        <small class="field-hint">Stored only in this browser (local storage). Remove anytime with "Clear".</small>
-      </div>
-
       <div class="tax-buttons advisor-buttons">
         <button id="analyzeBtn" type="button">
-          <i class="fas fa-chart-line"></i>&nbsp;Analyze 6 Months
+          <i class="fas fa-chart-line"></i>&nbsp;Get 7-Day Outlook
         </button>
         <button id="clearBtn" type="button" class="ghost-button">
           <i class="fas fa-eraser"></i>&nbsp;Clear
@@ -65,8 +59,8 @@
     <section class="advisor-notes" aria-label="Usage notes">
       <h2><i class="fas fa-key"></i>&nbsp;Before you begin</h2>
       <ul>
-        <li>You need a <strong>Google Gemini API key</strong>. Create one in Google AI Studio and paste it above.</li>
-        <li>Keep your key private. It never leaves your browser except for Gemini API requests.</li>
+        <li>Set your <strong>Google Gemini API key</strong> inside the <code>GEMINI_API_KEY</code> constant in this page's script.</li>
+        <li>The key stays on this page and is only used for Gemini API requests.</li>
         <li>Outputs are AI-generated forecasts — verify with real market data before making trades.</li>
       </ul>
     </section>
@@ -75,21 +69,16 @@
   <script>
     (function () {
       const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
+      const GEMINI_API_KEY = 'AIzaSyAi9o1H0rBWqafr5k3op4_iKEn5q80c2Rc'; // TODO: replace this string with your real Gemini API key
       const analyzeBtn = document.getElementById('analyzeBtn');
       const clearBtn = document.getElementById('clearBtn');
       const tickerInput = document.getElementById('tickerInput');
       const marketSelect = document.getElementById('marketSelect');
-      const apiKeyInput = document.getElementById('apiKeyInput');
       const statusBox = document.getElementById('statusBox');
       const guidanceText = document.getElementById('guidanceText');
       const reportSection = document.getElementById('reportSection');
       const outlookSection = document.getElementById('outlookSection');
       const outlookList = document.getElementById('outlookList');
-
-      const storedKey = localStorage.getItem('geminiApiKey');
-      if (storedKey) {
-        apiKeyInput.value = storedKey;
-      }
 
       /**
        * Updates the status panel with helper text.
@@ -222,25 +211,23 @@ Do not include any other text outside a single fenced JSON block.`;
 
       analyzeBtn.addEventListener('click', async () => {
         const symbol = tickerInput.value.trim().toUpperCase();
-        const apiKey = apiKeyInput.value.trim();
         const market = marketSelect.value;
 
         if (!symbol) {
           updateStatus('Please enter a stock symbol, e.g., AAPL or SMPH.', 'error');
           return;
         }
-        if (!apiKey) {
-          updateStatus('Paste your Gemini API key to continue.', 'error');
+        if (!GEMINI_API_KEY || GEMINI_API_KEY === 'AIzaSyAi9o1H0rBWqafr5k3op4_iKEn5q80c2Rc') {
+          updateStatus('Set your Gemini API key inside GEMINI_API_KEY in the code.', 'error');
           return;
         }
 
-        localStorage.setItem('geminiApiKey', apiKey);
         updateStatus('Contacting Gemini for projections...', 'info');
         analyzeBtn.disabled = true;
         clearBtn.disabled = true;
 
         try {
-          const payload = await requestGemini(symbol, market, apiKey);
+          const payload = await requestGemini(symbol, market, GEMINI_API_KEY);
           renderOutlook(payload.weeklyOutlook, payload.currency || 'USD');
           renderReport(payload, symbol);
           updateStatus('Review the weekly outlook and guidance below.', 'success');
@@ -256,13 +243,11 @@ Do not include any other text outside a single fenced JSON block.`;
       clearBtn.addEventListener('click', () => {
         tickerInput.value = '';
         marketSelect.value = 'philippines';
-        apiKeyInput.value = '';
-        localStorage.removeItem('geminiApiKey');
         reportSection.hidden = true;
         guidanceText.innerHTML = '';
         outlookSection.hidden = true;
         outlookList.innerHTML = '';
-        updateStatus('Cleared inputs. Paste a stock symbol and key to try again.', 'info');
+        updateStatus('Cleared inputs. Enter a stock symbol to try again.', 'info');
       });
     })();
   </script>
