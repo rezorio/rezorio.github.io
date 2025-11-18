@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reviewer Quiz</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+<body class="apps-page reviewer-quiz-page">
+  <a href="apps.html" class="apps-button">Apps</a>
+  <a href="reviewer.html" class="apps-button back-button">Reviewer</a>
+
+  <div class="container reviewer-container">
+    <h1>Quiz Session</h1>
+    <p class="apps-intro">Answer the shuffled questions for your latest topic. When you finish, we will show your score and let you retake the quiz instantly.</p>
+
+    <div class="quiz-status" id="statusBox" role="status" aria-live="polite">
+      <strong><i class="fas fa-info-circle"></i>&nbsp;Loading</strong>
+      <p>Fetching your reviewer data…</p>
+    </div>
+
+    <section class="reviewer-quiz" id="quizSection" hidden aria-label="Quiz section">
+      <div class="quiz-meta-bar">
+        <div>Topic: <span id="topicLabel">—</span></div>
+        <div>Questions prepared: <span id="countLabel">0</span></div>
+        <div>Progress: <span id="progressLabel">0 / 0</span></div>
+      </div>
+      <div class="quiz-panel">
+        <div class="quiz-question" id="questionText">Loading…</div>
+        <div class="quiz-choices" id="choicesList" role="group" aria-live="polite"></div>
+        <p class="quiz-feedback" id="quizFeedback"></p>
+        <div class="quiz-buttons">
+          <button id="nextQuestionBtn" type="button" class="ghost-button" disabled>Next question</button>
+          <button id="backBtn" type="button">Back to reviewer</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="quiz-results" id="resultsSection" hidden aria-label="Quiz results">
+      <h3><i class="fas fa-award"></i>&nbsp;Score summary</h3>
+      <p id="scoreLine">You scored 0 out of 0.</p>
+      <p id="encouragementText"></p>
+      <div class="quiz-buttons">
+        <button id="retakeQuizBtn" type="button" disabled>Retake quiz</button>
+        <button id="reviewCardsBtn" type="button" class="ghost-button">Review cards again</button>
+      </div>
+    </section>
+
+    <section class="quiz-results" id="emptyState" hidden aria-label="Missing reviewer data">
+      <h3><i class="fas fa-circle-info"></i>&nbsp;No reviewer found</h3>
+      <p>Generate a reviewer first so we can build quiz questions. Once you have one, tap <em>Take the quiz</em> to come back here.</p>
+      <button id="goToReviewerBtn" type="button">Go to reviewer</button>
+    </section>
+  </div>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = 'reviewerQuizData';
+      const statusBox = document.getElementById('statusBox');
+      const quizSection = document.getElementById('quizSection');
+      const resultsSection = document.getElementById('resultsSection');
+      const emptyState = document.getElementById('emptyState');
+      const topicLabel = document.getElementById('topicLabel');
+      const countLabel = document.getElementById('countLabel');
+      const progressLabel = document.getElementById('progressLabel');
+      const questionText = document.getElementById('questionText');
+      const choicesList = document.getElementById('choicesList');
+      const quizFeedback = document.getElementById('quizFeedback');
+      const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+      const backBtn = document.getElementById('backBtn');
+      const retakeQuizBtn = document.getElementById('retakeQuizBtn');
+      const reviewCardsBtn = document.getElementById('reviewCardsBtn');
+      const goToReviewerBtn = document.getElementById('goToReviewerBtn');
+      const scoreLine = document.getElementById('scoreLine');
+      const encouragementText = document.getElementById('encouragementText');
+
+      const state = {
+        quizItems: [],
+        order: [],
+        index: 0,
+        score: 0,
+        awaitingAnswer: false,
+        topic: '',
+      };
+
+      const updateStatus = (message, tone = 'info', label = 'Status') => {
+        statusBox.dataset.tone = tone;
+        const toneIcon = tone === 'success' ? 'fa-circle-check' : tone === 'error' ? 'fa-triangle-exclamation' : 'fa-info-circle';
+        statusBox.querySelector('strong').innerHTML = `<i class="fas ${toneIcon}"></i>&nbsp;${label}`;
+        statusBox.querySelector('p').textContent = message;
+      };
+
+      const shuffle = (array) => {
+        const copy = [...array];
+        for (let i = copy.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      };
+
+      const hydrateQuiz = () => {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          updateStatus('No reviewer data detected. Generate one first.', 'error', 'Missing data');
+          emptyState.hidden = false;
+          quizSection.hidden = true;
+          resultsSection.hidden = true;
+          return false;
+        }
+        try {
+          const payload = JSON.parse(raw);
+          if (!Array.isArray(payload.quizItems) || !payload.quizItems.length) {
+            throw new Error('Quiz items missing in saved payload.');
+          }
+          state.quizItems = payload.quizItems;
+          state.topic = payload.topic || 'Custom topic';
+          topicLabel.textContent = state.topic;
+          countLabel.textContent = payload.questionCount || payload.quizItems.length;
+          quizSection.hidden = false;
+          emptyState.hidden = true;
+          return true;
+        } catch (error) {
+          console.error('Failed to read quiz payload', error);
+          updateStatus('Saved quiz data is corrupt. Please regenerate the reviewer.', 'error', 'Corrupted data');
+          localStorage.removeItem(STORAGE_KEY);
+          emptyState.hidden = false;
+          quizSection.hidden = true;
+          resultsSection.hidden = true;
+          return false;
+        }
+      };
+
+      const renderQuestion = () => {
+        if (state.index >= state.order.length) {
+          finishQuiz();
+          return;
+        }
+        const questionData = state.quizItems[state.order[state.index]];
+        progressLabel.textContent = `${state.index + 1} / ${state.order.length}`;
+        questionText.textContent = questionData.question || 'Question unavailable.';
+        quizFeedback.textContent = '';
+        nextQuestionBtn.disabled = true;
+        state.awaitingAnswer = true;
+
+        const choiceObjects = (questionData.choices || []).map((choice, idx) => ({
+          text: choice,
+          correct: idx === Number(questionData.answerIndex),
+        })).filter((choice) => choice.text);
+
+        if (!choiceObjects.length) {
+          choicesList.innerHTML = '<p class="quiz-summary">Gemini did not return answer choices for this question.</p>';
+          state.awaitingAnswer = false;
+          nextQuestionBtn.disabled = false;
+          return;
+        }
+
+        const shuffledChoices = shuffle(choiceObjects);
+        choicesList.innerHTML = shuffledChoices.map((choice, idx) => `
+          <button type="button" class="choice-btn" data-correct="${choice.correct}" data-choice="${idx}">${choice.text}</button>
+        `).join('');
+
+        choicesList.querySelectorAll('.choice-btn').forEach((button) => {
+          button.addEventListener('click', () => handleChoice(button, questionData));
+        });
+
+        nextQuestionBtn.textContent = state.index === state.order.length - 1 ? 'Finish quiz' : 'Next question';
+      };
+
+      const handleChoice = (button, questionData) => {
+        if (!state.awaitingAnswer) return;
+        state.awaitingAnswer = false;
+        const isCorrect = button.dataset.correct === 'true';
+        if (isCorrect) {
+          state.score += 1;
+          quizFeedback.textContent = 'Correct! Great recall.';
+          button.classList.add('choice-correct');
+        } else {
+          quizFeedback.textContent = 'Incorrect. Review the explanation below.';
+          button.classList.add('choice-incorrect');
+        }
+
+        choicesList.querySelectorAll('.choice-btn').forEach((choiceBtn) => {
+          choiceBtn.disabled = true;
+          if (choiceBtn.dataset.correct === 'true') {
+            choiceBtn.classList.add('choice-correct');
+          }
+        });
+
+        if (questionData.answerExplanation) {
+          quizFeedback.textContent += ` ${questionData.answerExplanation}`;
+        }
+
+        nextQuestionBtn.disabled = false;
+      };
+
+      const finishQuiz = () => {
+        quizSection.hidden = true;
+        resultsSection.hidden = false;
+        retakeQuizBtn.disabled = false;
+        scoreLine.textContent = `You scored ${state.score} out of ${state.order.length} questions.`;
+        const ratio = state.score / state.order.length;
+        encouragementText.textContent = ratio === 1
+          ? 'Perfect score! Try another topic or retake for practice.'
+          : ratio >= 0.7
+            ? 'Nice work. Review any tricky terms, then retake for mastery.'
+            : 'Keep practicing. Revisit the reviewer cards, then retake the quiz for a fresh order.';
+        updateStatus('Quiz complete! Review your score below.', 'success', 'Finished');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+
+      const startQuiz = () => {
+        state.order = shuffle(Array.from({ length: state.quizItems.length }, (_, idx) => idx));
+        state.index = 0;
+        state.score = 0;
+        state.awaitingAnswer = true;
+        progressLabel.textContent = `0 / ${state.order.length}`;
+        quizSection.hidden = false;
+        resultsSection.hidden = true;
+        retakeQuizBtn.disabled = true;
+        updateStatus('Quiz ready. Answer each question, then tap Next.', 'info', 'Ready');
+        renderQuestion();
+      };
+
+      nextQuestionBtn.addEventListener('click', () => {
+        if (state.index >= state.order.length) {
+          finishQuiz();
+          return;
+        }
+        state.index += 1;
+        renderQuestion();
+      });
+
+      retakeQuizBtn.addEventListener('click', () => {
+        startQuiz();
+      });
+
+      backBtn.addEventListener('click', () => {
+        window.location.href = 'reviewer.html';
+      });
+
+      reviewCardsBtn.addEventListener('click', () => {
+        window.location.href = 'reviewer.html';
+      });
+
+      goToReviewerBtn.addEventListener('click', () => {
+        window.location.href = 'reviewer.html';
+      });
+
+      if (hydrateQuiz()) {
+        startQuiz();
+      }
+    })();
+  </script>
+</body>
+</html>
