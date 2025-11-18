@@ -19,7 +19,8 @@
     <section class="reviewer-form" role="form" aria-label="Generate AI reviewer">
       <div class="form-field">
         <label for="topicInput">What do you want to study?</label>
-        <textarea id="topicInput" rows="3" placeholder="e.g., Medical study about feet, Philippine history on EDSA Revolution" required></textarea>
+        <p class="field-hint">Optional when a PDF is attached—Gemini will prioritize the document.</p>
+        <textarea id="topicInput" rows="3" placeholder="Describe a topic or leave blank when uploading a PDF"></textarea>
       </div>
 
       <div class="form-field">
@@ -434,7 +435,7 @@ Guidelines:
         const typedTopic = topicInput.value.trim();
         const pdfSnippet = includePdfToggle.checked && state.pdfText ? state.pdfText : '';
         if (!typedTopic && !pdfSnippet) {
-          updateStatus('Describe a topic or attach a PDF before generating.', 'error');
+          updateStatus('Attach a PDF or describe a topic before generating.', 'error');
           return;
         }
         if (!GEMINI_API_KEY?.trim()) {
@@ -450,7 +451,10 @@ Guidelines:
           return;
         }
 
-        updateStatus('Contacting Gemini to craft your reviewer...', 'info');
+        const workingMessage = pdfSnippet
+          ? 'Gemini is analyzing your PDF and building reviewer cards...'
+          : 'Contacting Gemini to craft your reviewer...';
+        updateStatus(workingMessage, 'info');
         generateBtn.disabled = true;
         resetBtn.disabled = true;
 
@@ -468,7 +472,10 @@ Guidelines:
             reviewerEntries: payload.reviewerEntries,
             quizItems: payload.quizItems,
           }));
-          updateStatus('Reviewer and quiz ready. Study first, then take the quiz!', 'success');
+          const successMessage = pdfSnippet
+            ? 'PDF processed! Review the AI-generated cards, then take the quiz.'
+            : 'Reviewer and quiz ready. Study first, then take the quiz!';
+          updateStatus(successMessage, 'success');
           reviewerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } catch (error) {
           console.error(error);
