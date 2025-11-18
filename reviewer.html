@@ -13,7 +13,7 @@
   <div class="container reviewer-container">
     <h1>Reviewer</h1>
     <p class="apps-intro reviewer-intro">
-      Summon a focused study guide powered by Google Gemini. Describe a topic, pick how many Q&A items you want, review the summaries, then challenge yourself with a randomized quiz.
+      Drop in your lecture PDF or type a topic, then let Gemini craft concise reviewer cards plus a randomized quiz.
     </p>
 
     <section class="reviewer-form" role="form" aria-label="Generate AI reviewer">
@@ -90,14 +90,6 @@
       </div>
     </section>
 
-    <section class="advisor-notes" aria-label="Gemini API instructions">
-      <h2><i class="fas fa-key"></i>&nbsp;API setup</h2>
-      <ul>
-        <li>Set your Google Gemini API key inside the <code>GEMINI_API_KEY</code> constant in this page.</li>
-        <li>The key only lives in your browser and is used directly for each request.</li>
-        <li>AI answers may be inaccurate—verify critical facts before memorizing.</li>
-      </ul>
-    </section>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha512-1+TpoA3nk9/J1GhFp1cV+LDVOGBev5nYeD1yfknhk+aoCA8DmF5asJ5AZt0pOEtpJR/YWZLxE+nobVhtSGcVw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -512,16 +504,16 @@ Guidelines:
         window.location.href = 'reviewer-quiz.html';
       });
 
-        pdfInput.addEventListener('change', handlePdfChange);
-        clearPdfBtn.addEventListener('click', () => {
-          clearPdfSelection();
-          setPdfStatus('Removed the PDF. Only your typed topic will be sent to Gemini.', { tone: 'info', show: true });
-        });
-        includePdfToggle.addEventListener('change', () => {
-          if (!state.pdfText && includePdfToggle.checked) {
-            includePdfToggle.checked = false;
-          }
-        });
+      pdfInput.addEventListener('change', handlePdfChange);
+      clearPdfBtn.addEventListener('click', () => {
+        clearPdfSelection();
+        setPdfStatus('Removed the PDF. Only your typed topic will be sent to Gemini.', { tone: 'info', show: true });
+      });
+      includePdfToggle.addEventListener('change', () => {
+        if (!state.pdfText && includePdfToggle.checked) {
+          includePdfToggle.checked = false;
+        }
+      });
       })();
     });
   </script>

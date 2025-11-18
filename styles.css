@@ -1088,7 +1088,7 @@ button:active { transform: translateY(1px); box-shadow: none; }
 /* Reviewer app */
 body.reviewer-page.apps-page { padding-top: 64px; }
 .reviewer-container h1 { margin-bottom: 12px; }
-.reviewer-intro { margin-bottom: 18px; }
+.reviewer-intro { margin-bottom: 12px; }
 .reviewer-form {
   background: #fffdf8;
   border: 1px solid #eadfce;
