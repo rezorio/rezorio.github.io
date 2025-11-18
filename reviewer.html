@@ -102,6 +102,13 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha512-1+TpoA3nk9/J1GhFp1cV+LDVOGBev5nYeD1yfknhk+aoCA8DmF5asJ5AZt0pOEtpJR/YWZLxE+nobVhtSGcVw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script>
+    // Wait for PDF.js to load before initializing
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
+    });
+
     (() => {
       const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
       const GEMINI_API_KEY = 'AIzaSyAi9o1H0rBWqafr5k3op4_iKEn5q80c2Rc'; // TODO: Replace with your Gemini API key.
@@ -129,9 +136,6 @@
       const STORAGE_KEY = 'reviewerQuizData';
       const PDF_SIZE_LIMIT = 10 * 1024 * 1024; // 10 MB
       const PDF_SNIPPET_CHARS = 8000;
-      if (window.pdfjsLib) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      }
 
       const state = {
         reviewerEntries: [],
@@ -191,6 +195,9 @@
       };
 
       const extractPdfText = async (file) => {
+        if (!window.pdfjsLib) {
+          throw new Error('PDF.js library is not loaded. Please refresh the page and try again.');
+        }
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         let combined = '';
