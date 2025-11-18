@@ -34,13 +34,6 @@
           </div>
           <button type="button" id="clearPdfBtn" class="ghost-button btn-compact">Remove PDF</button>
         </div>
-        <div class="pdf-options" id="pdfOptions" hidden>
-          <label class="checkbox-inline">
-            <input type="checkbox" id="includePdfToggle" checked />
-            <span>Blend uploaded PDF text with my prompt</span>
-          </label>
-          <p class="field-hint">Gemini will receive both your typed topic and a condensed excerpt from the PDF.</p>
-        </div>
       </div>
 
       <div class="form-field">
@@ -114,8 +107,6 @@
       const pdfStatus = document.getElementById('pdfStatus');
       const pdfStatusText = document.getElementById('pdfStatusText');
       const pdfMetaText = document.getElementById('pdfMetaText');
-      const pdfOptions = document.getElementById('pdfOptions');
-      const includePdfToggle = document.getElementById('includePdfToggle');
       const clearPdfBtn = document.getElementById('clearPdfBtn');
       const generateBtn = document.getElementById('generateBtn');
       const resetBtn = document.getElementById('resetBtn');
@@ -138,6 +129,7 @@
         questionCount: 0,
         pdfText: '',
         pdfMeta: null,
+        usePdf: true,
       };
 
       /**
@@ -182,9 +174,7 @@
         }
         state.pdfText = '';
         state.pdfMeta = null;
-        includePdfToggle.checked = true;
-        includePdfToggle.disabled = true;
-        pdfOptions.hidden = true;
+        state.usePdf = false;
         setPdfStatus('', { show: false });
       };
 
@@ -229,9 +219,7 @@
           }
           state.pdfText = text;
           state.pdfMeta = { name: file.name, pages, size: file.size };
-          includePdfToggle.disabled = false;
-          includePdfToggle.checked = true;
-          pdfOptions.hidden = false;
+          state.usePdf = true;
           setPdfStatus('PDF ready. We will include key snippets unless you disable it below.', {
             meta: `${file.name} • ${pages} page(s) • ${formatFileSize(file.size)}`,
             tone: 'info',
@@ -433,9 +421,9 @@ Guidelines:
 
       generateBtn.addEventListener('click', async () => {
         const typedTopic = topicInput.value.trim();
-        const pdfSnippet = includePdfToggle.checked && state.pdfText ? state.pdfText : '';
+        const pdfSnippet = state.usePdf && state.pdfText ? state.pdfText : '';
         if (!typedTopic && !pdfSnippet) {
-          updateStatus('Attach a PDF or describe a topic before generating.', 'error');
+          updateStatus('Attach a PDF before generating.', 'error');
           return;
         }
         if (!GEMINI_API_KEY?.trim()) {
@@ -462,7 +450,11 @@ Guidelines:
           const payload = await requestGeminiReviewer(typedTopic, questionCount, pdfSnippet, GEMINI_API_KEY);
           state.reviewerEntries = payload.reviewerEntries;
           state.quizItems = payload.quizItems;
-          state.topic = typedTopic || (state.pdfMeta ? `Notes from ${state.pdfMeta.name}` : 'Custom topic');
+          state.topic = pdfSnippet
+            ? state.pdfMeta
+              ? `Notes from ${state.pdfMeta.name}`
+              : 'PDF-based reviewer'
+            : typedTopic || 'Custom topic';
           state.questionCount = questionCount;
           renderReviewer(payload.reviewerEntries);
           localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -515,11 +507,6 @@ Guidelines:
       clearPdfBtn.addEventListener('click', () => {
         clearPdfSelection();
         setPdfStatus('Removed the PDF. Only your typed topic will be sent to Gemini.', { tone: 'info', show: true });
-      });
-      includePdfToggle.addEventListener('change', () => {
-        if (!state.pdfText && includePdfToggle.checked) {
-          includePdfToggle.checked = false;
-        }
       });
       })();
     });
