@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reviewer</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+<body class="apps-page reviewer-page">
+  <a href="apps.html" class="apps-button back-button">Apps</a>
+
+  <div class="container reviewer-container">
+    <h1>Reviewer</h1>
+    <p class="apps-intro reviewer-intro">
+      Summon a focused study guide powered by Google Gemini. Describe a topic, pick how many Q&A items you want, review the summaries, then challenge yourself with a randomized quiz.
+    </p>
+
+    <section class="reviewer-form" role="form" aria-label="Generate AI reviewer">
+      <div class="form-field">
+        <label for="topicInput">What do you want to study?</label>
+        <textarea id="topicInput" rows="3" placeholder="e.g., Medical study about feet, Philippine history on EDSA Revolution" required></textarea>
+      </div>
+
+      <div class="form-field">
+        <label for="questionPreset">How many questions?</label>
+        <div class="count-control">
+          <select id="questionPreset">
+            <option value="10">10 questions</option>
+            <option value="20">20 questions</option>
+            <option value="30">30 questions</option>
+            <option value="40">40 questions</option>
+            <option value="50">50 questions</option>
+            <option value="custom">Custom (1-100)</option>
+          </select>
+          <input type="number" id="customCount" min="1" max="100" placeholder="25" aria-label="Custom question count" disabled />
+        </div>
+      </div>
+
+      <div class="form-field reviewer-actions">
+        <button id="generateBtn" type="button">
+          <i class="fas fa-brain"></i>&nbsp;Generate reviewer
+        </button>
+        <button id="resetBtn" type="button" class="ghost-button">
+          <i class="fas fa-rotate"></i>&nbsp;Reset
+        </button>
+      </div>
+    </section>
+
+    <div class="advisor-status reviewer-status" id="statusBox" role="status" aria-live="polite">
+      <strong><i class="fas fa-info-circle"></i>&nbsp;Waiting for a topic</strong>
+      <p>Describe the subject you want to review and choose how many entries to generate.</p>
+    </div>
+
+    <section class="reviewer-output" id="reviewerSection" hidden aria-label="Reviewer cards">
+      <div class="section-heading">
+        <h2><i class="fas fa-book"></i>&nbsp;Reviewer</h2>
+        <p>Scan these concise definitions before testing yourself.</p>
+      </div>
+      <div class="reviewer-cards" id="reviewerList"></div>
+    </section>
+
+    <section class="reviewer-quiz" id="quizSection" hidden aria-label="Quiz section">
+      <div class="section-heading">
+        <h2><i class="fas fa-question-circle"></i>&nbsp;Quiz Yourself</h2>
+        <p>The quiz order shuffles every attempt. Answer to reveal instant feedback.</p>
+      </div>
+      <div class="quiz-panel">
+        <div class="quiz-meta">
+          <span id="quizProgress">0 / 0</span>
+        </div>
+        <div class="quiz-question" id="questionText">Generate a reviewer to unlock the quiz.</div>
+        <div class="quiz-choices" id="choicesList" role="group" aria-live="polite"></div>
+        <p class="quiz-feedback" id="quizFeedback"></p>
+        <div class="quiz-buttons">
+          <button id="nextQuestionBtn" type="button" class="ghost-button" disabled>Next question</button>
+          <button id="retakeQuizBtn" type="button" disabled>Retake quiz</button>
+          <button id="backToReviewerBtn" type="button" class="ghost-button">Back to reviewer</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="advisor-notes" aria-label="Gemini API instructions">
+      <h2><i class="fas fa-key"></i>&nbsp;API setup</h2>
+      <ul>
+        <li>Set your Google Gemini API key inside the <code>GEMINI_API_KEY</code> constant in this page.</li>
+        <li>The key only lives in your browser and is used directly for each request.</li>
+        <li>AI answers may be inaccurate—verify critical facts before memorizing.</li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    (() => {
+      const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+      const GEMINI_API_KEY = 'AIzaSyAi9o1H0rBWqafr5k3op4_iKEn5q80c2Rc'; // TODO: Replace with your Gemini API key.
+
+      const topicInput = document.getElementById('topicInput');
+      const questionPreset = document.getElementById('questionPreset');
+      const customCountInput = document.getElementById('customCount');
+      const generateBtn = document.getElementById('generateBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const statusBox = document.getElementById('statusBox');
+      const reviewerSection = document.getElementById('reviewerSection');
+      const reviewerList = document.getElementById('reviewerList');
+      const quizSection = document.getElementById('quizSection');
+      const quizProgress = document.getElementById('quizProgress');
+      const questionText = document.getElementById('questionText');
+      const choicesList = document.getElementById('choicesList');
+      const quizFeedback = document.getElementById('quizFeedback');
+      const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+      const retakeQuizBtn = document.getElementById('retakeQuizBtn');
+      const backToReviewerBtn = document.getElementById('backToReviewerBtn');
+
+      const state = {
+        reviewerEntries: [],
+        quizItems: [],
+        quizOrder: [],
+        currentIndex: 0,
+        score: 0,
+        awaitingAnswer: false,
+      };
+
+      /**
+       * Updates the status ribbon tone + message.
+       * @param {string} message
+       * @param {'info'|'success'|'error'} tone
+       */
+      const updateStatus = (message, tone = 'info') => {
+        statusBox.dataset.tone = tone;
+        const toneIcon = tone === 'success' ? 'fa-circle-check' : tone === 'error' ? 'fa-triangle-exclamation' : 'fa-info-circle';
+        const toneLabel = tone === 'success' ? 'Ready' : tone === 'error' ? 'Issue detected' : 'Working';
+        statusBox.querySelector('strong').innerHTML = `<i class="fas ${toneIcon}"></i>&nbsp;${toneLabel}`;
+        statusBox.querySelector('p').textContent = message;
+      };
+
+      const toggleCustomCount = () => {
+        const isCustom = questionPreset.value === 'custom';
+        customCountInput.disabled = !isCustom;
+        customCountInput.setAttribute('aria-hidden', String(!isCustom));
+        if (!isCustom) {
+          customCountInput.value = '';
+        } else {
+          customCountInput.focus();
+        }
+      };
+
+      /**
+       * Resolves the requested question total.
+       * @returns {number}
+       */
+      const getQuestionCount = () => {
+        if (questionPreset.value !== 'custom') {
+          return Number(questionPreset.value);
+        }
+        const customValue = Number(customCountInput.value);
+        if (!Number.isInteger(customValue)) {
+          throw new Error('Enter a whole number between 1 and 100.');
+        }
+        if (customValue < 1 || customValue > 100) {
+          throw new Error('Custom question counts must stay between 1 and 100.');
+        }
+        return customValue;
+      };
+
+      /**
+       * Builds the Gemini prompt.
+       * @param {string} topic
+       * @param {number} count
+       * @returns {string}
+       */
+      const buildPrompt = (topic, count) => `You are an expert study coach. Create a reviewer and matching multiple-choice quiz about: ${topic}.
+Return ONLY a JSON object inside one fenced code block using this schema:
+{
+  "reviewerEntries": [
+    { "term": "", "definition": "", "keyTakeaway": "", "memoryHook": "" }
+  ],
+  "quizItems": [
+    { "question": "", "choices": [""], "answerIndex": 0, "answerExplanation": "" }
+  ]
+}
+Guidelines:
+- Provide exactly ${count} reviewerEntries and ${count} quizItems.
+- Definitions must stay under 60 words, plain English, still mention critical domain jargon.
+- Each quiz question needs 4 concise, distinct choices. answerIndex is the zero-based correct choice.
+- Use neutral, factual tone. Avoid markdown, LaTeX, or stray commentary.`;
+
+      /**
+       * Calls Gemini and returns structured data.
+       * @param {string} topic
+       * @param {number} count
+       * @param {string} apiKey
+       * @returns {Promise<{ reviewerEntries: any[]; quizItems: any[]; }>}
+       */
+      const requestGeminiReviewer = async (topic, count, apiKey) => {
+        const response = await fetch(`${API_URL}?key=${encodeURIComponent(apiKey)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: buildPrompt(topic, count) }],
+              },
+            ],
+            safetySettings: [
+              { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+              { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+            ],
+          }),
+        });
+
+        if (!response.ok) {
+          const detail = await response.text();
+          throw new Error(`Gemini API error: ${response.status} ${detail}`);
+        }
+
+        const data = await response.json();
+        const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!textResult) {
+          throw new Error('Gemini response was empty.');
+        }
+        return parseReviewerPayload(textResult);
+      };
+
+      /**
+       * Extracts JSON payload from Gemini text output.
+       * @param {string} text
+       */
+      const parseReviewerPayload = (text) => {
+        const match = text.match(/```json\s*([\s\S]*?)```/i) || text.match(/```\s*([\s\S]*?)```/i);
+        if (!match) {
+          throw new Error('Gemini response missing JSON block.');
+        }
+        const payload = JSON.parse(match[1]);
+        if (!Array.isArray(payload.reviewerEntries) || payload.reviewerEntries.length === 0) {
+          throw new Error('Reviewer entries missing from Gemini response.');
+        }
+        if (!Array.isArray(payload.quizItems) || payload.quizItems.length === 0) {
+          throw new Error('Quiz items missing from Gemini response.');
+        }
+        return payload;
+      };
+
+      /**
+       * Renders reviewer cards.
+       * @param {{ term: string; definition: string; keyTakeaway?: string; memoryHook?: string; }[]} entries
+       */
+      const renderReviewer = (entries) => {
+        const cards = entries.map((entry, index) => {
+          const title = entry.term || `Item ${index + 1}`;
+          const definition = entry.definition || 'Definition unavailable.';
+          const keyTakeaway = entry.keyTakeaway ? `<p class="takeaway"><strong>Key takeaway:</strong> ${entry.keyTakeaway}</p>` : '';
+          const memoryHook = entry.memoryHook ? `<p class="memory"><strong>Memory hook:</strong> ${entry.memoryHook}</p>` : '';
+          return `<article class="review-card">
+            <h3>${title}</h3>
+            <p>${definition}</p>
+            ${keyTakeaway}
+            ${memoryHook}
+          </article>`;
+        });
+        reviewerList.innerHTML = cards.join('');
+        reviewerSection.hidden = false;
+      };
+
+      const shuffle = (array) => {
+        const copy = [...array];
+        for (let i = copy.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      };
+
+      /**
+       * Starts a quiz run with freshly shuffled questions.
+       * @param {{ question: string; choices: string[]; answerIndex: number; answerExplanation?: string; }[]} quizItems
+       */
+      const primeQuiz = (quizItems) => {
+        state.quizItems = quizItems;
+        state.quizOrder = shuffle(Array.from({ length: quizItems.length }, (_, idx) => idx));
+        state.currentIndex = 0;
+        state.score = 0;
+        state.awaitingAnswer = true;
+        quizSection.hidden = false;
+        retakeQuizBtn.disabled = false;
+        renderQuestion();
+      };
+
+      const renderQuestion = () => {
+        if (!state.quizItems.length) {
+          questionText.textContent = 'No quiz data available yet.';
+          quizProgress.textContent = '0 / 0';
+          choicesList.innerHTML = '';
+          nextQuestionBtn.disabled = true;
+          return;
+        }
+
+        if (state.currentIndex >= state.quizOrder.length) {
+          return finishQuiz();
+        }
+
+        const questionData = state.quizItems[state.quizOrder[state.currentIndex]];
+        quizProgress.textContent = `${state.currentIndex + 1} / ${state.quizOrder.length}`;
+        questionText.textContent = questionData.question || 'Question unavailable.';
+        quizFeedback.textContent = '';
+        nextQuestionBtn.disabled = true;
+        state.awaitingAnswer = true;
+
+        const choiceObjects = (questionData.choices || []).map((choice, idx) => ({
+          text: choice,
+          correct: idx === Number(questionData.answerIndex),
+        })).filter((choice) => choice.text);
+
+        const shuffledChoices = shuffle(choiceObjects);
+        choicesList.innerHTML = shuffledChoices.map((choice, idx) => `
+          <button type="button" class="choice-btn" data-correct="${choice.correct}" data-choice="${idx}">${choice.text}</button>
+        `).join('');
+
+        choicesList.querySelectorAll('.choice-btn').forEach((button) => {
+          button.addEventListener('click', () => handleChoice(button, questionData));
+        });
+
+        nextQuestionBtn.textContent = state.currentIndex === state.quizOrder.length - 1 ? 'Finish quiz' : 'Next question';
+      };
+
+      /**
+       * Handles a user answer.
+       * @param {HTMLButtonElement} button
+       * @param {{ answerExplanation?: string }} questionData
+       */
+      const handleChoice = (button, questionData) => {
+        if (!state.awaitingAnswer) return;
+        state.awaitingAnswer = false;
+
+        const isCorrect = button.dataset.correct === 'true';
+        if (isCorrect) {
+          state.score += 1;
+          button.classList.add('choice-correct');
+          quizFeedback.textContent = 'Nice! You nailed it.';
+        } else {
+          button.classList.add('choice-incorrect');
+          quizFeedback.textContent = 'Not quite. Review the explanation below.';
+        }
+
+        choicesList.querySelectorAll('.choice-btn').forEach((choiceBtn) => {
+          choiceBtn.disabled = true;
+          if (choiceBtn.dataset.correct === 'true') {
+            choiceBtn.classList.add('choice-correct');
+          }
+        });
+
+        if (questionData.answerExplanation) {
+          quizFeedback.textContent += ` ${questionData.answerExplanation}`;
+        }
+
+        nextQuestionBtn.disabled = false;
+      };
+
+      const finishQuiz = () => {
+        questionText.textContent = 'Review complete! Revisit the cards or shuffle the quiz again.';
+        quizProgress.textContent = `${state.score} / ${state.quizOrder.length} correct`;
+        choicesList.innerHTML = `<p class="quiz-summary">You answered ${state.score} out of ${state.quizOrder.length} correctly. Focus on the reviewer cards highlighted earlier, then retake the quiz for a fresh order.</p>`;
+        quizFeedback.textContent = '';
+        nextQuestionBtn.disabled = true;
+        state.awaitingAnswer = false;
+        reviewerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+
+      nextQuestionBtn.addEventListener('click', () => {
+        if (state.currentIndex < state.quizOrder.length) {
+          state.currentIndex += 1;
+          renderQuestion();
+        }
+      });
+
+      retakeQuizBtn.addEventListener('click', () => {
+        if (!state.quizItems.length) return;
+        state.quizOrder = shuffle(Array.from({ length: state.quizItems.length }, (_, idx) => idx));
+        state.currentIndex = 0;
+        state.score = 0;
+        state.awaitingAnswer = true;
+        renderQuestion();
+      });
+
+      backToReviewerBtn.addEventListener('click', () => {
+        reviewerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      questionPreset.addEventListener('change', toggleCustomCount);
+
+      generateBtn.addEventListener('click', async () => {
+        const topic = topicInput.value.trim();
+        if (!topic) {
+          updateStatus('Describe the topic you want to review.', 'error');
+          return;
+        }
+        if (!GEMINI_API_KEY?.trim()) {
+          updateStatus('Set your Gemini API key inside GEMINI_API_KEY before continuing.', 'error');
+          return;
+        }
+
+        let questionCount;
+        try {
+          questionCount = getQuestionCount();
+        } catch (error) {
+          updateStatus(error.message, 'error');
+          return;
+        }
+
+        updateStatus('Contacting Gemini to craft your reviewer...', 'info');
+        generateBtn.disabled = true;
+        resetBtn.disabled = true;
+
+        try {
+          const payload = await requestGeminiReviewer(topic, questionCount, GEMINI_API_KEY);
+          renderReviewer(payload.reviewerEntries);
+          primeQuiz(payload.quizItems);
+          updateStatus('Reviewer and quiz ready. Study first, then take the quiz!', 'success');
+          reviewerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (error) {
+          console.error(error);
+          updateStatus(error.message, 'error');
+        } finally {
+          generateBtn.disabled = false;
+          resetBtn.disabled = false;
+        }
+      });
+
+      resetBtn.addEventListener('click', () => {
+        topicInput.value = '';
+        questionPreset.value = '10';
+        toggleCustomCount();
+        reviewerSection.hidden = true;
+        reviewerList.innerHTML = '';
+        quizSection.hidden = true;
+        quizProgress.textContent = '0 / 0';
+        questionText.textContent = 'Generate a reviewer to unlock the quiz.';
+        choicesList.innerHTML = '';
+        quizFeedback.textContent = '';
+        retakeQuizBtn.disabled = true;
+        nextQuestionBtn.disabled = true;
+        state.reviewerEntries = [];
+        state.quizItems = [];
+        state.quizOrder = [];
+        state.currentIndex = 0;
+        state.score = 0;
+        updateStatus('Cleared inputs. Describe a fresh topic to begin again.', 'info');
+      });
+    })();
+  </script>
+</body>
+</html>
