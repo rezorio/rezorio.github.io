@@ -51,6 +51,15 @@
         </div>
       </div>
 
+      <div class="form-field">
+        <label for="questionFormat">Quiz format</label>
+        <p class="field-hint">Pick how you want the quiz to behave when testing later on.</p>
+        <select id="questionFormat">
+          <option value="multiple-choice">Multiple choice (4 options)</option>
+          <option value="identification">Identification (typed answer)</option>
+        </select>
+      </div>
+
       <div class="form-field reviewer-actions">
         <button id="generateBtn" type="button">
           <i class="fas fa-brain"></i>&nbsp;Generate reviewer
@@ -91,7 +100,8 @@
         <div>
           <p class="quiz-topic" id="quizTopicLabel"></p>
           <p class="quiz-count" id="quizCountLabel"></p>
-          <p>Ready to test your recall? Launch the quiz to get randomized multiple-choice questions.</p>
+          <p class="quiz-format" id="quizFormatLabel"></p>
+          <p>Ready to test your recall? Launch the quiz to get randomized questions in your selected format.</p>
         </div>
         <button id="takeQuizBtn" type="button">
           <i class="fas fa-question-circle"></i>&nbsp;Take the quiz
@@ -118,6 +128,7 @@
       const topicInput = document.getElementById('topicInput');
       const questionPreset = document.getElementById('questionPreset');
       const customCountInput = document.getElementById('customCount');
+      const questionFormatSelect = document.getElementById('questionFormat');
       const pdfInput = document.getElementById('pdfInput');
       const pdfStatus = document.getElementById('pdfStatus');
       const pdfStatusText = document.getElementById('pdfStatusText');
@@ -136,6 +147,7 @@
       const takeQuizBtn = document.getElementById('takeQuizBtn');
       const quizTopicLabel = document.getElementById('quizTopicLabel');
       const quizCountLabel = document.getElementById('quizCountLabel');
+      const quizFormatLabel = document.getElementById('quizFormatLabel');
 
       const STORAGE_KEY = 'reviewerQuizData';
       const PDF_SIZE_LIMIT = 10 * 1024 * 1024; // 10 MB
@@ -146,6 +158,7 @@
         quizItems: [],
         topic: '',
         questionCount: 0,
+        questionFormat: 'multiple-choice',
         pdfText: '',
         pdfMeta: null,
         usePdf: true,
@@ -286,7 +299,7 @@
        * @param {number} count
        * @returns {string}
        */
-      const buildPrompt = (topic, count, pdfSnippet) => {
+      const buildPrompt = (topic, count, pdfSnippet, format) => {
         const topicDirective = topic ? `Study request: ${topic}.` : 'Study request: derive the most important takeaways from the provided reference.';
         const referenceBlock = pdfSnippet
           ? `Reference excerpt (keep confidential, summarize it for the learner):
@@ -294,22 +307,27 @@
 ${pdfSnippet}
 """`
           : 'No reference excerpt uploaded — rely on the study request alone.';
+        const formatDirective = format === 'identification'
+          ? `Quiz style: identification / short-answer. For every quizItems entry, include "questionType": "identification" and an "answerText" string containing the expected response. Do not return "choices" or "answerIndex" for this mode.`
+          : `Quiz style: multiple choice. Each quizItems entry must include "questionType": "multiple-choice", four concise "choices", and "answerIndex" pointing to the correct option.`;
 
         return `You are an expert study coach. ${topicDirective}
 ${referenceBlock}
+${formatDirective}
 Return ONLY a JSON object inside one fenced code block using this schema:
 {
   "reviewerEntries": [
     { "term": "", "definition": "", "keyTakeaway": "", "memoryHook": "" }
   ],
   "quizItems": [
-    { "question": "", "choices": [""], "answerIndex": 0, "answerExplanation": "" }
+    { "question": "", "questionType": "", "choices": [""], "answerIndex": 0, "answerExplanation": "", "answerText": "" }
   ]
 }
 Guidelines:
 - Provide exactly ${count} reviewerEntries and ${count} quizItems.
 - Definitions must stay under 60 words, plain English, still mention critical domain jargon.
-- Each quiz question needs 4 concise, distinct choices. answerIndex is the zero-based correct choice.
+- When in multiple-choice mode, supply 4 concise, distinct choices and set answerIndex to the zero-based correct choice.
+- When in identification mode, skip choices entirely and respond with an informative answerText worth 3-6 words.
 - Use neutral, factual tone. Avoid markdown, LaTeX, or stray commentary.`;
       };
 
@@ -320,7 +338,7 @@ Guidelines:
        * @param {string} apiKey
        * @returns {Promise<{ reviewerEntries: any[]; quizItems: any[]; }>}
        */
-      const requestGeminiReviewer = async (topic, count, pdfSnippet, apiKey) => {
+      const requestGeminiReviewer = async (topic, count, pdfSnippet, format, apiKey) => {
         const response = await fetch(`${API_URL}?key=${encodeURIComponent(apiKey)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -328,7 +346,7 @@ Guidelines:
             contents: [
               {
                 role: 'user',
-                parts: [{ text: buildPrompt(topic, count, pdfSnippet) }],
+                parts: [{ text: buildPrompt(topic, count, pdfSnippet, format) }],
               },
             ],
             safetySettings: [
@@ -385,6 +403,17 @@ Guidelines:
         } else {
           quizCountLabel.textContent = '';
           quizCountLabel.hidden = true;
+        }
+
+        if (state.questionFormat === 'identification') {
+          quizFormatLabel.textContent = 'Format: Identification (typed answer)';
+          quizFormatLabel.hidden = false;
+        } else if (state.questionFormat === 'multiple-choice') {
+          quizFormatLabel.textContent = 'Format: Multiple choice';
+          quizFormatLabel.hidden = false;
+        } else {
+          quizFormatLabel.textContent = '';
+          quizFormatLabel.hidden = true;
         }
       };
 
@@ -454,6 +483,8 @@ Guidelines:
           state.quizItems = saved.quizItems;
           state.topic = saved.topic || 'Custom topic';
           state.questionCount = Number(saved.questionCount) || saved.quizItems.length;
+          state.questionFormat = saved.questionFormat || 'multiple-choice';
+          questionFormatSelect.value = state.questionFormat;
           renderReviewer(saved.reviewerEntries, { focusButton: false });
           updateStatus('Loaded your last reviewer. You can regenerate anytime.', 'info');
         } catch (error) {
@@ -468,6 +499,7 @@ Guidelines:
       generateBtn.addEventListener('click', async () => {
         const typedTopic = topicInput.value.trim();
         const pdfSnippet = state.usePdf && state.pdfText ? state.pdfText : '';
+        const selectedFormat = questionFormatSelect.value;
         if (!typedTopic && !pdfSnippet) {
           updateStatus('Attach a PDF before generating.', 'error');
           return;
@@ -493,7 +525,7 @@ Guidelines:
         resetBtn.disabled = true;
 
         try {
-          const payload = await requestGeminiReviewer(typedTopic, questionCount, pdfSnippet, GEMINI_API_KEY);
+          const payload = await requestGeminiReviewer(typedTopic, questionCount, pdfSnippet, selectedFormat, GEMINI_API_KEY);
           state.reviewerEntries = payload.reviewerEntries;
           state.quizItems = payload.quizItems;
           state.topic = pdfSnippet
@@ -502,11 +534,13 @@ Guidelines:
               : 'PDF-based reviewer'
             : typedTopic || 'Custom topic';
           state.questionCount = questionCount;
+          state.questionFormat = selectedFormat;
           renderReviewer(payload.reviewerEntries);
           localStorage.setItem(STORAGE_KEY, JSON.stringify({
             topic: state.topic,
             generatedAt: new Date().toISOString(),
             questionCount,
+            questionFormat: selectedFormat,
             reviewerEntries: payload.reviewerEntries,
             quizItems: payload.quizItems,
           }));
@@ -528,6 +562,7 @@ Guidelines:
         topicInput.value = '';
         questionPreset.value = '10';
         toggleCustomCount();
+        questionFormatSelect.value = 'multiple-choice';
         clearPdfSelection();
         reviewerSection.hidden = true;
         reviewerCardContainer.hidden = true;
@@ -539,6 +574,7 @@ Guidelines:
         state.currentCardIndex = 0;
         state.topic = '';
         state.questionCount = 0;
+        state.questionFormat = 'multiple-choice';
         setQuizMetaLabels();
         localStorage.removeItem(STORAGE_KEY);
         updateStatus('Cleared inputs. Describe a fresh topic to begin again.', 'info');

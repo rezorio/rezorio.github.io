@@ -24,10 +24,12 @@
       <div class="quiz-meta-bar">
         <div>Topic: <span id="topicLabel">—</span></div>
         <div>Questions prepared: <span id="countLabel">0</span></div>
+        <div>Format: <span id="formatLabel">—</span></div>
         <div>Progress: <span id="progressLabel">0 / 0</span></div>
       </div>
       <div class="quiz-panel">
         <div class="quiz-question" id="questionText">Loading…</div>
+        <p class="quiz-mode-note" id="modeNote" hidden>Loading quiz mode…</p>
         <div class="quiz-choices" id="choicesList" role="group" aria-live="polite"></div>
         <p class="quiz-feedback" id="quizFeedback"></p>
         <div class="quiz-buttons">
@@ -63,8 +65,10 @@
       const emptyState = document.getElementById('emptyState');
       const topicLabel = document.getElementById('topicLabel');
       const countLabel = document.getElementById('countLabel');
+      const formatLabel = document.getElementById('formatLabel');
       const progressLabel = document.getElementById('progressLabel');
       const questionText = document.getElementById('questionText');
+      const modeNote = document.getElementById('modeNote');
       const choicesList = document.getElementById('choicesList');
       const quizFeedback = document.getElementById('quizFeedback');
       const nextQuestionBtn = document.getElementById('nextQuestionBtn');
@@ -82,6 +86,118 @@
         score: 0,
         awaitingAnswer: false,
         topic: '',
+        questionFormat: 'multiple-choice',
+      };
+
+      const FORMAT_NAMES = {
+        'multiple-choice': 'Multiple choice',
+        identification: 'Identification',
+      };
+
+      const inferQuestionFormat = (items = []) => (items.some((item) => (item.questionType || '').toLowerCase() === 'identification')
+        ? 'identification'
+        : 'multiple-choice');
+
+      const normalizeAnswer = (value = '') => value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9 ]+/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+
+      const splitAnswerText = (answerText = '') => answerText
+        .split(/(?:,|\/|;|\bor\b)/i)
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+      const getAcceptedAnswers = (questionData = {}) => {
+        const accepted = [];
+        if (questionData.answerText) {
+          accepted.push(...splitAnswerText(questionData.answerText));
+        }
+        if (Array.isArray(questionData.choices) && questionData.choices.length) {
+          const correctChoice = questionData.choices[Number(questionData.answerIndex)];
+          if (correctChoice) {
+            accepted.push(correctChoice);
+          }
+        }
+        return accepted;
+      };
+
+      const evaluateIdentificationAnswer = (inputValue, questionData) => {
+        const normalizedUser = normalizeAnswer(inputValue);
+        const acceptedAnswers = getAcceptedAnswers(questionData);
+        const normalizedAccepted = acceptedAnswers.map((item) => normalizeAnswer(item));
+        const isCorrect = normalizedUser.length > 0 && normalizedAccepted.includes(normalizedUser);
+        return { isCorrect, acceptedAnswers };
+      };
+
+      const setFormatMeta = () => {
+        const formatName = FORMAT_NAMES[state.questionFormat] || FORMAT_NAMES['multiple-choice'];
+        formatLabel.textContent = formatName;
+      };
+
+      const setModeNote = (questionType) => {
+        const normalizedType = (questionType || '').toLowerCase();
+        const copy = normalizedType === 'identification'
+          ? 'Type your answer, tap Submit, and we will check it against the reviewer key.'
+          : normalizedType === 'multiple-choice'
+            ? 'Tap the best option, then continue to the next randomized question.'
+            : '';
+        if (copy) {
+          modeNote.textContent = copy;
+          modeNote.hidden = false;
+        } else {
+          modeNote.textContent = '';
+          modeNote.hidden = true;
+        }
+      };
+
+      const handleIdentificationSubmission = (answerInput, submitBtn, questionData) => {
+        if (!state.awaitingAnswer) return;
+        const userValue = answerInput.value.trim();
+        if (!userValue) return;
+        state.awaitingAnswer = false;
+        answerInput.disabled = true;
+        submitBtn.disabled = true;
+        const { isCorrect, acceptedAnswers } = evaluateIdentificationAnswer(userValue, questionData);
+        if (isCorrect) {
+          state.score += 1;
+          quizFeedback.textContent = 'Correct! Way to recall the term.';
+        } else {
+          const correctAnswer = acceptedAnswers[0] || 'Answer unavailable';
+          quizFeedback.textContent = `Incorrect. Correct answer: ${correctAnswer}.`;
+        }
+        if (questionData.answerExplanation) {
+          quizFeedback.textContent += ` ${questionData.answerExplanation}`;
+        }
+        nextQuestionBtn.disabled = false;
+      };
+
+      const renderIdentificationQuestion = (questionData) => {
+        const acceptedAnswers = getAcceptedAnswers(questionData);
+        if (!acceptedAnswers.length) {
+          choicesList.innerHTML = '<p class="quiz-summary">This identification question is missing an answer key. Please regenerate your reviewer.</p>';
+          state.awaitingAnswer = false;
+          nextQuestionBtn.disabled = false;
+          return;
+        }
+
+        choicesList.innerHTML = `
+          <div class="quiz-answer-input">
+            <label class="sr-only" for="identificationInput">Type your answer</label>
+            <input type="text" id="identificationInput" placeholder="Type your answer" autocomplete="off" />
+            <button type="button" id="submitAnswerBtn" disabled>Submit answer</button>
+          </div>
+        `;
+
+        const answerInput = document.getElementById('identificationInput');
+        const submitAnswerBtn = document.getElementById('submitAnswerBtn');
+        answerInput.addEventListener('input', () => {
+          submitAnswerBtn.disabled = !answerInput.value.trim();
+        });
+        submitAnswerBtn.addEventListener('click', () => handleIdentificationSubmission(answerInput, submitAnswerBtn, questionData));
       };
 
       const updateStatus = (message, tone = 'info', label = 'Status') => {
@@ -116,8 +232,10 @@
           }
           state.quizItems = payload.quizItems;
           state.topic = payload.topic || 'Custom topic';
+          state.questionFormat = payload.questionFormat || inferQuestionFormat(payload.quizItems);
           topicLabel.textContent = state.topic;
           countLabel.textContent = payload.questionCount || payload.quizItems.length;
+          setFormatMeta();
           quizSection.hidden = false;
           emptyState.hidden = true;
           return true;
@@ -143,27 +261,35 @@
         quizFeedback.textContent = '';
         nextQuestionBtn.disabled = true;
         state.awaitingAnswer = true;
+        const questionType = (questionData.questionType || state.questionFormat || 'multiple-choice').toLowerCase();
+        choicesList.classList.toggle('is-identification', questionType === 'identification');
+        choicesList.setAttribute('role', questionType === 'multiple-choice' ? 'group' : 'presentation');
+        setModeNote(questionType);
 
-        const choiceObjects = (questionData.choices || []).map((choice, idx) => ({
-          text: choice,
-          correct: idx === Number(questionData.answerIndex),
-        })).filter((choice) => choice.text);
+        if (questionType === 'identification') {
+          renderIdentificationQuestion(questionData);
+        } else {
+          const choiceObjects = (questionData.choices || []).map((choice, idx) => ({
+            text: choice,
+            correct: idx === Number(questionData.answerIndex),
+          })).filter((choice) => choice.text);
 
-        if (!choiceObjects.length) {
-          choicesList.innerHTML = '<p class="quiz-summary">Gemini did not return answer choices for this question.</p>';
-          state.awaitingAnswer = false;
-          nextQuestionBtn.disabled = false;
-          return;
+          if (!choiceObjects.length) {
+            choicesList.innerHTML = '<p class="quiz-summary">Gemini did not return answer choices for this question.</p>';
+            state.awaitingAnswer = false;
+            nextQuestionBtn.disabled = false;
+            return;
+          }
+
+          const shuffledChoices = shuffle(choiceObjects);
+          choicesList.innerHTML = shuffledChoices.map((choice, idx) => `
+            <button type="button" class="choice-btn" data-correct="${choice.correct}" data-choice="${idx}">${choice.text}</button>
+          `).join('');
+
+          choicesList.querySelectorAll('.choice-btn').forEach((button) => {
+            button.addEventListener('click', () => handleChoice(button, questionData));
+          });
         }
-
-        const shuffledChoices = shuffle(choiceObjects);
-        choicesList.innerHTML = shuffledChoices.map((choice, idx) => `
-          <button type="button" class="choice-btn" data-correct="${choice.correct}" data-choice="${idx}">${choice.text}</button>
-        `).join('');
-
-        choicesList.querySelectorAll('.choice-btn').forEach((button) => {
-          button.addEventListener('click', () => handleChoice(button, questionData));
-        });
 
         nextQuestionBtn.textContent = state.index === state.order.length - 1 ? 'Finish quiz' : 'Next question';
       };
@@ -198,6 +324,7 @@
       const finishQuiz = () => {
         quizSection.hidden = true;
         resultsSection.hidden = false;
+        setModeNote('');
         retakeQuizBtn.disabled = false;
         scoreLine.textContent = `You scored ${state.score} out of ${state.order.length} questions.`;
         const ratio = state.score / state.order.length;
@@ -219,6 +346,8 @@
         quizSection.hidden = false;
         resultsSection.hidden = true;
         retakeQuizBtn.disabled = true;
+        setFormatMeta();
+        setModeNote(state.questionFormat);
         updateStatus('Quiz ready. Answer each question, then tap Next.', 'info', 'Ready');
         renderQuestion();
       };
