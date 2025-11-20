@@ -13,25 +13,90 @@
   <div class="container reviewer-container">
     <h1>Reviewer</h1>
     <p class="apps-intro reviewer-intro">
-      Drop in your lecture PDF or type a topic, then let Gemini craft concise reviewer cards plus a randomized quiz.
+      Create AI-powered study materials from text, PDFs, or videos. Get concise reviewer cards plus a randomized quiz.
     </p>
 
-    <section class="reviewer-form" role="form" aria-label="Generate AI reviewer">
+    <div class="reviewer-start" id="reviewerStart">
+      <button id="createReviewerBtn" type="button" class="primary-action-btn">
+        <i class="fas fa-plus-circle"></i>&nbsp;Create Reviewer
+      </button>
+    </div>
+
+    <section class="reviewer-form" id="reviewerForm" role="form" aria-label="Generate AI reviewer" hidden>
       <div class="form-field">
-        <label for="topicInput">What do you want to study?</label>
-        <p class="field-hint">Optional when a PDF is attached—Gemini will prioritize the document.</p>
-        <textarea id="topicInput" rows="3" placeholder="Describe a topic or leave blank when uploading a PDF"></textarea>
+        <label>Choose your input method</label>
+        <p class="field-hint">Select how you want to create your reviewer. You can combine multiple sources.</p>
+        <div class="input-method-tabs">
+          <button type="button" class="tab-btn active" data-tab="text" id="textTabBtn">
+            <i class="fas fa-keyboard"></i>&nbsp;Text
+          </button>
+          <button type="button" class="tab-btn" data-tab="pdf" id="pdfTabBtn">
+            <i class="fas fa-file-pdf"></i>&nbsp;PDF
+          </button>
+          <button type="button" class="tab-btn" data-tab="video" id="videoTabBtn">
+            <i class="fas fa-video"></i>&nbsp;Video
+          </button>
+        </div>
       </div>
 
-      <div class="form-field">
-        <label for="pdfInput">Attach a PDF (optional)</label>
-        <p class="field-hint">Upload lecture notes, reviewers, or any PDF under 10&nbsp;MB. We'll extract the text locally and include the highlights in your prompt.</p>
-        <div class="pdf-upload-wrapper" id="pdfInputWrapper" data-tone="idle">
-          <input id="pdfInput" type="file" accept="application/pdf" />
-          <button type="button" id="clearPdfBtn" class="ghost-button btn-compact" hidden>Remove PDF</button>
+      <div class="tab-content active" id="textTab">
+        <div class="form-field">
+          <label for="topicInput">What do you want to study?</label>
+          <p class="field-hint">Describe your topic in detail. The more specific, the better the reviewer.</p>
+          <textarea id="topicInput" rows="4" placeholder="e.g., Photosynthesis process in plants, World War II key events, JavaScript async/await..."></textarea>
         </div>
-        <p class="field-hint pdf-helper" id="pdfStatusText">No PDF attached yet. We'll lean on your typed topic.</p>
-        <p class="field-hint pdf-helper" id="pdfMetaText" hidden></p>
+      </div>
+
+      <div class="tab-content" id="pdfTab" hidden>
+        <div class="form-field">
+          <label for="pdfInput">Upload PDF Document</label>
+          <p class="field-hint">Upload lecture notes, textbooks, or any PDF under 10&nbsp;MB. We'll extract and analyze the content.</p>
+          <div class="upload-area" id="pdfUploadArea">
+            <input id="pdfInput" type="file" accept="application/pdf" hidden />
+            <div class="upload-placeholder" id="pdfPlaceholder">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <p>Click to upload or drag & drop</p>
+              <span>PDF files up to 10 MB</span>
+            </div>
+            <div class="upload-preview" id="pdfPreview" hidden>
+              <i class="fas fa-file-pdf"></i>
+              <div class="upload-info">
+                <p class="upload-name" id="pdfName"></p>
+                <p class="upload-meta" id="pdfMeta"></p>
+              </div>
+              <button type="button" class="remove-upload-btn" id="removePdfBtn" aria-label="Remove PDF">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+          <p class="field-hint upload-status" id="pdfStatus"></p>
+        </div>
+      </div>
+
+      <div class="tab-content" id="videoTab" hidden>
+        <div class="form-field">
+          <label for="videoInput">Upload Video File</label>
+          <p class="field-hint">Upload lecture recordings, tutorials, or educational videos. Gemini will analyze and summarize key points.</p>
+          <div class="upload-area" id="videoUploadArea">
+            <input id="videoInput" type="file" accept="video/*" hidden />
+            <div class="upload-placeholder" id="videoPlaceholder">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <p>Click to upload or drag & drop</p>
+              <span>Video files (MP4, MOV, AVI, etc.)</span>
+            </div>
+            <div class="upload-preview" id="videoPreview" hidden>
+              <i class="fas fa-video"></i>
+              <div class="upload-info">
+                <p class="upload-name" id="videoName"></p>
+                <p class="upload-meta" id="videoMeta"></p>
+              </div>
+              <button type="button" class="remove-upload-btn" id="removeVideoBtn" aria-label="Remove video">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+          <p class="field-hint upload-status" id="videoStatus"></p>
+        </div>
       </div>
 
       <div class="form-field generation-options">
@@ -126,15 +191,41 @@
       const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
       const GEMINI_API_KEY = 'AIzaSyAi9o1H0rBWqafr5k3op4_iKEn5q80c2Rc'; // TODO: Replace with your Gemini API key.
 
+      // UI Elements
+      const createReviewerBtn = document.getElementById('createReviewerBtn');
+      const reviewerStart = document.getElementById('reviewerStart');
+      const reviewerForm = document.getElementById('reviewerForm');
+      const textTabBtn = document.getElementById('textTabBtn');
+      const pdfTabBtn = document.getElementById('pdfTabBtn');
+      const videoTabBtn = document.getElementById('videoTabBtn');
+      const textTab = document.getElementById('textTab');
+      const pdfTab = document.getElementById('pdfTab');
+      const videoTab = document.getElementById('videoTab');
       const topicInput = document.getElementById('topicInput');
       const questionPreset = document.getElementById('questionPreset');
       const customCountInput = document.getElementById('customCount');
       const questionFormatSelect = document.getElementById('questionFormat');
+      
+      // PDF Elements
       const pdfInput = document.getElementById('pdfInput');
-      const pdfInputWrapper = document.getElementById('pdfInputWrapper');
-      const pdfStatusText = document.getElementById('pdfStatusText');
-      const pdfMetaText = document.getElementById('pdfMetaText');
-      const clearPdfBtn = document.getElementById('clearPdfBtn');
+      const pdfUploadArea = document.getElementById('pdfUploadArea');
+      const pdfPlaceholder = document.getElementById('pdfPlaceholder');
+      const pdfPreview = document.getElementById('pdfPreview');
+      const pdfName = document.getElementById('pdfName');
+      const pdfMeta = document.getElementById('pdfMeta');
+      const pdfStatus = document.getElementById('pdfStatus');
+      const removePdfBtn = document.getElementById('removePdfBtn');
+      
+      // Video Elements
+      const videoInput = document.getElementById('videoInput');
+      const videoUploadArea = document.getElementById('videoUploadArea');
+      const videoPlaceholder = document.getElementById('videoPlaceholder');
+      const videoPreview = document.getElementById('videoPreview');
+      const videoName = document.getElementById('videoName');
+      const videoMeta = document.getElementById('videoMeta');
+      const videoStatus = document.getElementById('videoStatus');
+      const removeVideoBtn = document.getElementById('removeVideoBtn');
+      
       const generateBtn = document.getElementById('generateBtn');
       const resetBtn = document.getElementById('resetBtn');
       const statusBox = document.getElementById('statusBox');
@@ -152,8 +243,8 @@
 
       const STORAGE_KEY = 'reviewerQuizData';
       const PDF_SIZE_LIMIT = 10 * 1024 * 1024; // 10 MB
+      const VIDEO_SIZE_LIMIT = 100 * 1024 * 1024; // 100 MB
       const PDF_SNIPPET_CHARS = 8000;
-      const DEFAULT_PDF_HINT = 'No PDF attached yet. We\'ll lean on your typed topic.';
 
       const state = {
         reviewerEntries: [],
@@ -164,7 +255,12 @@
         pdfText: '',
         pdfMeta: null,
         usePdf: false,
+        videoFile: null,
+        videoMeta: null,
+        useVideo: false,
+        videoSummary: '',
         currentCardIndex: 0,
+        activeTab: 'text',
       };
 
       /**
@@ -184,35 +280,161 @@
 
       const formatFileSize = (bytes) => `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 
-      const setPdfStatus = (message = DEFAULT_PDF_HINT, { meta = '', tone = 'info', hasFile = false } = {}) => {
-        if (!pdfInputWrapper) return;
-        pdfInputWrapper.dataset.tone = tone;
-        pdfInputWrapper.classList.toggle('has-file', hasFile);
-        if (pdfStatusText) {
-          pdfStatusText.textContent = message || DEFAULT_PDF_HINT;
+      const formatDuration = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+      };
+
+      /**
+       * Switch between input tabs (text, PDF, video)
+       */
+      const switchTab = (tabName) => {
+        // Update tab buttons
+        [textTabBtn, pdfTabBtn, videoTabBtn].forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.tab === tabName);
+        });
+        
+        // Update tab content
+        textTab.hidden = tabName !== 'text';
+        pdfTab.hidden = tabName !== 'pdf';
+        videoTab.hidden = tabName !== 'video';
+        
+        // Update active classes
+        textTab.classList.toggle('active', tabName === 'text');
+        pdfTab.classList.toggle('active', tabName === 'pdf');
+        videoTab.classList.toggle('active', tabName === 'video');
+        
+        state.activeTab = tabName;
+      };
+
+      /**
+       * Show the reviewer form
+       */
+      const showReviewerForm = () => {
+        reviewerStart.hidden = true;
+        reviewerForm.hidden = false;
+        updateStatus('Choose your input method and configure your reviewer.', 'info');
+      };
+
+      /**
+       * Handle PDF upload
+       */
+      const handlePdfUpload = async (file) => {
+        if (!file) return;
+        
+        if (file.size > PDF_SIZE_LIMIT) {
+          pdfStatus.textContent = '⚠️ PDF exceeds 10 MB limit. Please choose a smaller file.';
+          return;
         }
-        if (pdfMetaText) {
-          if (meta) {
-            pdfMetaText.hidden = false;
-            pdfMetaText.textContent = meta;
-          } else {
-            pdfMetaText.hidden = true;
-            pdfMetaText.textContent = '';
+
+        pdfStatus.textContent = '⏳ Extracting text from PDF...';
+        try {
+          const { text, pages } = await extractPdfText(file);
+          if (!text) {
+            throw new Error('No extractable text found in the PDF.');
           }
-        }
-        if (clearPdfBtn) {
-          clearPdfBtn.hidden = !hasFile;
+          
+          state.pdfText = text;
+          state.pdfMeta = { name: file.name, pages, size: file.size };
+          state.usePdf = true;
+          
+          // Show preview
+          pdfPlaceholder.hidden = true;
+          pdfPreview.hidden = false;
+          pdfName.textContent = file.name;
+          pdfMeta.textContent = `${pages} page(s) • ${formatFileSize(file.size)}`;
+          pdfStatus.textContent = '✓ PDF ready. Text extracted successfully.';
+        } catch (error) {
+          console.error('Failed to read PDF', error);
+          pdfStatus.textContent = `❌ ${error.message || 'Unable to read PDF contents.'}`;
+          clearPdfUpload();
         }
       };
 
-      const clearPdfSelection = (clearInput = true) => {
-        if (clearInput) {
-          pdfInput.value = '';
-        }
+      /**
+       * Clear PDF upload
+       */
+      const clearPdfUpload = () => {
+        pdfInput.value = '';
         state.pdfText = '';
         state.pdfMeta = null;
         state.usePdf = false;
-        setPdfStatus(DEFAULT_PDF_HINT, { tone: 'idle', hasFile: false });
+        pdfPlaceholder.hidden = false;
+        pdfPreview.hidden = true;
+        pdfStatus.textContent = '';
+      };
+
+      /**
+       * Upload video file to Gemini API and get base64
+       */
+      const uploadVideoToGemini = async (file) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const base64 = reader.result.split(',')[1];
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      };
+
+      /**
+       * Handle video upload
+       */
+      const handleVideoUpload = async (file) => {
+        if (!file) return;
+        
+        if (file.size > VIDEO_SIZE_LIMIT) {
+          videoStatus.textContent = '⚠️ Video exceeds 100 MB limit. Please choose a smaller file.';
+          return;
+        }
+
+        videoStatus.textContent = '⏳ Processing video...';
+        try {
+          // Get video metadata
+          const video = document.createElement('video');
+          video.preload = 'metadata';
+          
+          await new Promise((resolve, reject) => {
+            video.onloadedmetadata = resolve;
+            video.onerror = reject;
+            video.src = URL.createObjectURL(file);
+          });
+          
+          const duration = video.duration;
+          URL.revokeObjectURL(video.src);
+          
+          state.videoFile = file;
+          state.videoMeta = { name: file.name, duration, size: file.size };
+          state.useVideo = true;
+          
+          // Show preview
+          videoPlaceholder.hidden = true;
+          videoPreview.hidden = false;
+          videoName.textContent = file.name;
+          videoMeta.textContent = `${formatDuration(duration)} • ${formatFileSize(file.size)}`;
+          videoStatus.textContent = '✓ Video ready. Will be analyzed when you generate.';
+        } catch (error) {
+          console.error('Failed to process video', error);
+          videoStatus.textContent = `❌ ${error.message || 'Unable to process video.'}`;
+          clearVideoUpload();
+        }
+      };
+
+      /**
+       * Clear video upload
+       */
+      const clearVideoUpload = () => {
+        videoInput.value = '';
+        state.videoFile = null;
+        state.videoMeta = null;
+        state.useVideo = false;
+        state.videoSummary = '';
+        videoPlaceholder.hidden = false;
+        videoPreview.hidden = true;
+        videoStatus.textContent = '';
       };
 
       const extractPdfText = async (file) => {
@@ -235,38 +457,6 @@
         return { text: snippet, pages: pdf.numPages };
       };
 
-      const handlePdfChange = async () => {
-        const file = pdfInput.files?.[0];
-        if (!file) {
-          clearPdfSelection(false);
-          return;
-        }
-        if (file.size > PDF_SIZE_LIMIT) {
-          clearPdfSelection(false);
-          setPdfStatus('PDF exceeds the 10 MB limit. Please choose a smaller file.', { tone: 'error', hasFile: false });
-          return;
-        }
-
-        setPdfStatus('Extracting text from PDF…', { tone: 'info', hasFile: false });
-        try {
-          const { text, pages } = await extractPdfText(file);
-          if (!text) {
-            throw new Error('No extractable text found in the PDF.');
-          }
-          state.pdfText = text;
-          state.pdfMeta = { name: file.name, pages, size: file.size };
-          state.usePdf = true;
-          setPdfStatus('PDF ready. We will include key snippets unless you remove it.', {
-            meta: `${file.name} • ${pages} page(s) • ${formatFileSize(file.size)}`,
-            tone: 'success',
-            hasFile: true,
-          });
-        } catch (error) {
-          console.error('Failed to read PDF', error);
-          clearPdfSelection(false);
-          setPdfStatus(error.message || 'Unable to read PDF contents.', { tone: 'error', hasFile: false });
-        }
-      };
 
       const toggleCustomCount = () => {
         const isCustom = questionPreset.value === 'custom';
@@ -301,16 +491,41 @@
        * Builds the Gemini prompt.
        * @param {string} topic
        * @param {number} count
+       * @param {string} pdfSnippet
+       * @param {string} videoSummary
+       * @param {string} format
        * @returns {string}
        */
-      const buildPrompt = (topic, count, pdfSnippet, format) => {
+      const buildPrompt = (topic, count, pdfSnippet, videoSummary, format) => {
         const topicDirective = topic ? `Study request: ${topic}.` : 'Study request: derive the most important takeaways from the provided reference.';
-        const referenceBlock = pdfSnippet
-          ? `Reference excerpt (keep confidential, summarize it for the learner):
+        
+        let referenceBlock = '';
+        if (pdfSnippet && videoSummary) {
+          referenceBlock = `Reference materials (keep confidential, summarize for the learner):
+
+PDF excerpt:
 """
 ${pdfSnippet}
-"""`
-          : 'No reference excerpt uploaded — rely on the study request alone.';
+"""
+
+Video summary:
+"""
+${videoSummary}
+"""`;
+        } else if (pdfSnippet) {
+          referenceBlock = `Reference excerpt (keep confidential, summarize it for the learner):
+"""
+${pdfSnippet}
+"""`;
+        } else if (videoSummary) {
+          referenceBlock = `Video summary (keep confidential, summarize it for the learner):
+"""
+${videoSummary}
+"""`;
+        } else {
+          referenceBlock = 'No reference materials uploaded — rely on the study request alone.';
+        }
+        
         const formatDirective = format === 'identification'
           ? `Quiz style: identification / short-answer. For every quizItems entry, include "questionType": "identification" and an "answerText" string containing the expected response. Do not return "choices" or "answerIndex" for this mode.`
           : `Quiz style: multiple choice. Each quizItems entry must include "questionType": "multiple-choice", four concise "choices", and "answerIndex" pointing to the correct option.`;
@@ -336,13 +551,17 @@ Guidelines:
       };
 
       /**
-       * Calls Gemini and returns structured data.
-       * @param {string} topic
-       * @param {number} count
+       * Analyze video with Gemini API
+       * @param {File} videoFile
        * @param {string} apiKey
-       * @returns {Promise<{ reviewerEntries: any[]; quizItems: any[]; }>}
+       * @returns {Promise<string>} Video summary
        */
-      const requestGeminiReviewer = async (topic, count, pdfSnippet, format, apiKey) => {
+      const analyzeVideoWithGemini = async (videoFile, apiKey) => {
+        updateStatus('Uploading and analyzing video with Gemini...', 'info');
+        
+        const base64Video = await uploadVideoToGemini(videoFile);
+        const mimeType = videoFile.type || 'video/mp4';
+        
         const response = await fetch(`${API_URL}?key=${encodeURIComponent(apiKey)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -350,7 +569,65 @@ Guidelines:
             contents: [
               {
                 role: 'user',
-                parts: [{ text: buildPrompt(topic, count, pdfSnippet, format) }],
+                parts: [
+                  {
+                    inline_data: {
+                      mime_type: mimeType,
+                      data: base64Video
+                    }
+                  },
+                  {
+                    text: `Analyze this educational video and provide a comprehensive summary including:
+1. Main topics and concepts covered
+2. Key points and important information
+3. Any examples, demonstrations, or case studies mentioned
+4. Important terminology or definitions
+5. Overall learning objectives
+
+Provide a detailed summary that captures all the educational content.`
+                  }
+                ],
+              },
+            ],
+            safetySettings: [
+              { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+              { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+            ],
+          }),
+        });
+
+        if (!response.ok) {
+          const detail = await response.text();
+          throw new Error(`Gemini video analysis error: ${response.status} ${detail}`);
+        }
+
+        const data = await response.json();
+        const summary = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!summary) {
+          throw new Error('Gemini video analysis returned empty response.');
+        }
+        return summary;
+      };
+
+      /**
+       * Calls Gemini and returns structured data.
+       * @param {string} topic
+       * @param {number} count
+       * @param {string} pdfSnippet
+       * @param {string} videoSummary
+       * @param {string} format
+       * @param {string} apiKey
+       * @returns {Promise<{ reviewerEntries: any[]; quizItems: any[]; }>}
+       */
+      const requestGeminiReviewer = async (topic, count, pdfSnippet, videoSummary, format, apiKey) => {
+        const response = await fetch(`${API_URL}?key=${encodeURIComponent(apiKey)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: buildPrompt(topic, count, pdfSnippet, videoSummary, format) }],
               },
             ],
             safetySettings: [
@@ -497,8 +774,61 @@ Guidelines:
         }
       };
 
-      // Initialize PDF status UI
-      setPdfStatus(DEFAULT_PDF_HINT, { tone: 'idle', hasFile: false });
+      // Event Listeners
+      createReviewerBtn.addEventListener('click', showReviewerForm);
+
+      // Tab switching
+      textTabBtn.addEventListener('click', () => switchTab('text'));
+      pdfTabBtn.addEventListener('click', () => switchTab('pdf'));
+      videoTabBtn.addEventListener('click', () => switchTab('video'));
+
+      // PDF upload handlers
+      pdfPlaceholder.addEventListener('click', () => pdfInput.click());
+      pdfUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        pdfUploadArea.style.borderColor = '#8b7355';
+      });
+      pdfUploadArea.addEventListener('dragleave', () => {
+        pdfUploadArea.style.borderColor = '#eadfce';
+      });
+      pdfUploadArea.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        pdfUploadArea.style.borderColor = '#eadfce';
+        const file = e.dataTransfer.files[0];
+        if (file && file.type === 'application/pdf') {
+          pdfInput.files = e.dataTransfer.files;
+          await handlePdfUpload(file);
+        }
+      });
+      pdfInput.addEventListener('change', async () => {
+        const file = pdfInput.files?.[0];
+        if (file) await handlePdfUpload(file);
+      });
+      removePdfBtn.addEventListener('click', clearPdfUpload);
+
+      // Video upload handlers
+      videoPlaceholder.addEventListener('click', () => videoInput.click());
+      videoUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        videoUploadArea.style.borderColor = '#8b7355';
+      });
+      videoUploadArea.addEventListener('dragleave', () => {
+        videoUploadArea.style.borderColor = '#eadfce';
+      });
+      videoUploadArea.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        videoUploadArea.style.borderColor = '#eadfce';
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('video/')) {
+          videoInput.files = e.dataTransfer.files;
+          await handleVideoUpload(file);
+        }
+      });
+      videoInput.addEventListener('change', async () => {
+        const file = videoInput.files?.[0];
+        if (file) await handleVideoUpload(file);
+      });
+      removeVideoBtn.addEventListener('click', clearVideoUpload);
 
       questionPreset.addEventListener('change', toggleCustomCount);
       hydrateFromStorage();
@@ -507,8 +837,10 @@ Guidelines:
         const typedTopic = topicInput.value.trim();
         const pdfSnippet = state.usePdf && state.pdfText ? state.pdfText : '';
         const selectedFormat = questionFormatSelect.value;
-        if (!typedTopic && !pdfSnippet) {
-          updateStatus('Type a topic or attach a PDF before generating.', 'error');
+        
+        // Check if at least one input method is provided
+        if (!typedTopic && !pdfSnippet && !state.useVideo) {
+          updateStatus('Provide at least one input: text topic, PDF, or video.', 'error');
           return;
         }
         if (!GEMINI_API_KEY?.trim()) {
@@ -524,22 +856,42 @@ Guidelines:
           return;
         }
 
-        const workingMessage = pdfSnippet
-          ? 'Gemini is analyzing your PDF and building reviewer cards...'
-          : 'Contacting Gemini to craft your reviewer...';
-        updateStatus(workingMessage, 'info');
         generateBtn.disabled = true;
         resetBtn.disabled = true;
 
         try {
-          const payload = await requestGeminiReviewer(typedTopic, questionCount, pdfSnippet, selectedFormat, GEMINI_API_KEY);
+          // Analyze video if uploaded
+          let videoSummary = '';
+          if (state.useVideo && state.videoFile) {
+            videoSummary = await analyzeVideoWithGemini(state.videoFile, GEMINI_API_KEY);
+            state.videoSummary = videoSummary;
+          }
+
+          // Build working message
+          const sources = [];
+          if (typedTopic) sources.push('topic');
+          if (pdfSnippet) sources.push('PDF');
+          if (videoSummary) sources.push('video');
+          const workingMessage = sources.length > 0
+            ? `Gemini is analyzing your ${sources.join(' + ')} and building reviewer cards...`
+            : 'Contacting Gemini to craft your reviewer...';
+          updateStatus(workingMessage, 'info');
+
+          const payload = await requestGeminiReviewer(typedTopic, questionCount, pdfSnippet, videoSummary, selectedFormat, GEMINI_API_KEY);
           state.reviewerEntries = payload.reviewerEntries;
           state.quizItems = payload.quizItems;
-          state.topic = pdfSnippet
-            ? state.pdfMeta
-              ? `Notes from ${state.pdfMeta.name}`
-              : 'PDF-based reviewer'
-            : typedTopic || 'Custom topic';
+          
+          // Determine topic label
+          if (state.useVideo && state.videoMeta) {
+            state.topic = `Video: ${state.videoMeta.name}`;
+          } else if (pdfSnippet && state.pdfMeta) {
+            state.topic = `Notes from ${state.pdfMeta.name}`;
+          } else if (pdfSnippet) {
+            state.topic = 'PDF-based reviewer';
+          } else {
+            state.topic = typedTopic || 'Custom topic';
+          }
+          
           state.questionCount = questionCount;
           state.questionFormat = selectedFormat;
           renderReviewer(payload.reviewerEntries);
@@ -551,8 +903,9 @@ Guidelines:
             reviewerEntries: payload.reviewerEntries,
             quizItems: payload.quizItems,
           }));
-          const successMessage = pdfSnippet
-            ? 'PDF processed! Review the AI-generated cards, then take the quiz.'
+          
+          const successMessage = sources.length > 1
+            ? `${sources.join(' + ')} processed! Review the AI-generated cards, then take the quiz.`
             : 'Reviewer and quiz ready. Study first, then take the quiz!';
           updateStatus(successMessage, 'success');
           reviewerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -570,7 +923,8 @@ Guidelines:
         questionPreset.value = '10';
         toggleCustomCount();
         questionFormatSelect.value = 'multiple-choice';
-        clearPdfSelection();
+        clearPdfUpload();
+        clearVideoUpload();
         reviewerSection.hidden = true;
         reviewerCardContainer.hidden = true;
         reviewerActiveCard.innerHTML = '';
