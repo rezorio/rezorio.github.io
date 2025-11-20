@@ -16,13 +16,7 @@
       Create AI-powered study materials from text, PDFs, or videos. Get concise reviewer cards plus a randomized quiz.
     </p>
 
-    <div class="reviewer-start" id="reviewerStart">
-      <button id="createReviewerBtn" type="button" class="primary-action-btn">
-        <i class="fas fa-plus-circle"></i>&nbsp;Create Reviewer
-      </button>
-    </div>
-
-    <section class="reviewer-form" id="reviewerForm" role="form" aria-label="Generate AI reviewer" hidden>
+    <section class="reviewer-form" id="reviewerForm" role="form" aria-label="Generate AI reviewer">
       <div class="form-field">
         <label>Choose your input method</label>
         <p class="field-hint">Select how you want to create your reviewer. You can combine multiple sources.</p>
@@ -192,8 +186,6 @@
       const GEMINI_API_KEY = 'AIzaSyAi9o1H0rBWqafr5k3op4_iKEn5q80c2Rc'; // TODO: Replace with your Gemini API key.
 
       // UI Elements
-      const createReviewerBtn = document.getElementById('createReviewerBtn');
-      const reviewerStart = document.getElementById('reviewerStart');
       const reviewerForm = document.getElementById('reviewerForm');
       const textTabBtn = document.getElementById('textTabBtn');
       const pdfTabBtn = document.getElementById('pdfTabBtn');
@@ -306,15 +298,6 @@
         videoTab.classList.toggle('active', tabName === 'video');
         
         state.activeTab = tabName;
-      };
-
-      /**
-       * Show the reviewer form
-       */
-      const showReviewerForm = () => {
-        reviewerStart.hidden = true;
-        reviewerForm.hidden = false;
-        updateStatus('Choose your input method and configure your reviewer.', 'info');
       };
 
       /**
@@ -775,8 +758,6 @@ Provide a detailed summary that captures all the educational content.`
       };
 
       // Event Listeners
-      createReviewerBtn.addEventListener('click', showReviewerForm);
-
       // Tab switching
       textTabBtn.addEventListener('click', () => switchTab('text'));
       pdfTabBtn.addEventListener('click', () => switchTab('pdf'));

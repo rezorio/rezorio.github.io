@@ -1471,6 +1471,7 @@ body.reviewer-page.apps-page { padding-top: 64px; }
 }
 .choice-btn.choice-correct { border-color: rgba(47, 133, 90, 0.7); background: rgba(47, 133, 90, 0.1); }
 .choice-btn.choice-incorrect { border-color: rgba(185, 28, 28, 0.7); background: rgba(185, 28, 28, 0.1); }
+.choice-btn.choice-selected { border-color: #8b7355; background: rgba(139, 115, 85, 0.1); font-weight: 600; }
 .quiz-answer-input { display: grid; gap: 8px; }
 .quiz-answer-input input {
   width: 100%;

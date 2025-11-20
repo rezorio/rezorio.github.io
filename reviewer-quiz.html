@@ -31,10 +31,8 @@
         <div class="quiz-question" id="questionText">Loading…</div>
         <p class="quiz-mode-note" id="modeNote" hidden>Loading quiz mode…</p>
         <div class="quiz-choices" id="choicesList" role="group" aria-live="polite"></div>
-        <p class="quiz-feedback" id="quizFeedback"></p>
         <div class="quiz-buttons">
-          <button id="nextQuestionBtn" type="button" class="ghost-button" disabled>Next question</button>
-          <button id="backBtn" type="button">Back to reviewer</button>
+          <button id="nextQuestionBtn" type="button" disabled>Next question</button>
         </div>
       </div>
     </section>
@@ -49,11 +47,6 @@
       </div>
     </section>
 
-    <section class="quiz-results" id="emptyState" hidden aria-label="Missing reviewer data">
-      <h3><i class="fas fa-circle-info"></i>&nbsp;No reviewer found</h3>
-      <p>Generate a reviewer first so we can build quiz questions. Once you have one, tap <em>Take the quiz</em> to come back here.</p>
-      <button id="goToReviewerBtn" type="button">Go to reviewer</button>
-    </section>
   </div>
 
   <script>
@@ -70,12 +63,9 @@
       const questionText = document.getElementById('questionText');
       const modeNote = document.getElementById('modeNote');
       const choicesList = document.getElementById('choicesList');
-      const quizFeedback = document.getElementById('quizFeedback');
       const nextQuestionBtn = document.getElementById('nextQuestionBtn');
-      const backBtn = document.getElementById('backBtn');
       const retakeQuizBtn = document.getElementById('retakeQuizBtn');
       const reviewCardsBtn = document.getElementById('reviewCardsBtn');
-      const goToReviewerBtn = document.getElementById('goToReviewerBtn');
       const scoreLine = document.getElementById('scoreLine');
       const encouragementText = document.getElementById('encouragementText');
 
@@ -84,7 +74,7 @@
         order: [],
         index: 0,
         score: 0,
-        awaitingAnswer: false,
+        userAnswers: [],
         topic: '',
         questionFormat: 'multiple-choice',
       };
@@ -141,9 +131,9 @@
       const setModeNote = (questionType) => {
         const normalizedType = (questionType || '').toLowerCase();
         const copy = normalizedType === 'identification'
-          ? 'Type your answer, tap Submit, and we will check it against the reviewer key.'
+          ? 'Type your answer and tap Submit to continue. Your answers will be checked at the end.'
           : normalizedType === 'multiple-choice'
-            ? 'Tap the best option, then continue to the next randomized question.'
+            ? 'Select the best option, then continue to the next question. Your answers will be checked at the end.'
             : '';
         if (copy) {
           modeNote.textContent = copy;
@@ -154,24 +144,12 @@
         }
       };
 
-      const handleIdentificationSubmission = (answerInput, submitBtn, questionData) => {
-        if (!state.awaitingAnswer) return;
+      const handleIdentificationSubmission = (answerInput, submitBtn) => {
         const userValue = answerInput.value.trim();
         if (!userValue) return;
-        state.awaitingAnswer = false;
         answerInput.disabled = true;
         submitBtn.disabled = true;
-        const { isCorrect, acceptedAnswers } = evaluateIdentificationAnswer(userValue, questionData);
-        if (isCorrect) {
-          state.score += 1;
-          quizFeedback.textContent = 'Correct! Way to recall the term.';
-        } else {
-          const correctAnswer = acceptedAnswers[0] || 'Answer unavailable';
-          quizFeedback.textContent = `Incorrect. Correct answer: ${correctAnswer}.`;
-        }
-        if (questionData.answerExplanation) {
-          quizFeedback.textContent += ` ${questionData.answerExplanation}`;
-        }
+        state.userAnswers[state.index] = userValue;
         nextQuestionBtn.disabled = false;
       };
 
@@ -179,7 +157,6 @@
         const acceptedAnswers = getAcceptedAnswers(questionData);
         if (!acceptedAnswers.length) {
           choicesList.innerHTML = '<p class="quiz-summary">This identification question is missing an answer key. Please regenerate your reviewer.</p>';
-          state.awaitingAnswer = false;
           nextQuestionBtn.disabled = false;
           return;
         }
@@ -197,7 +174,7 @@
         answerInput.addEventListener('input', () => {
           submitAnswerBtn.disabled = !answerInput.value.trim();
         });
-        submitAnswerBtn.addEventListener('click', () => handleIdentificationSubmission(answerInput, submitAnswerBtn, questionData));
+        submitAnswerBtn.addEventListener('click', () => handleIdentificationSubmission(answerInput, submitAnswerBtn));
       };
 
       const updateStatus = (message, tone = 'info', label = 'Status') => {
@@ -220,7 +197,6 @@
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) {
           updateStatus('No reviewer data detected. Generate one first.', 'error', 'Missing data');
-          emptyState.hidden = false;
           quizSection.hidden = true;
           resultsSection.hidden = true;
           return false;
@@ -237,13 +213,11 @@
           countLabel.textContent = payload.questionCount || payload.quizItems.length;
           setFormatMeta();
           quizSection.hidden = false;
-          emptyState.hidden = true;
           return true;
         } catch (error) {
           console.error('Failed to read quiz payload', error);
           updateStatus('Saved quiz data is corrupt. Please regenerate the reviewer.', 'error', 'Corrupted data');
           localStorage.removeItem(STORAGE_KEY);
-          emptyState.hidden = false;
           quizSection.hidden = true;
           resultsSection.hidden = true;
           return false;
@@ -258,9 +232,7 @@
         const questionData = state.quizItems[state.order[state.index]];
         progressLabel.textContent = `${state.index + 1} / ${state.order.length}`;
         questionText.textContent = questionData.question || 'Question unavailable.';
-        quizFeedback.textContent = '';
         nextQuestionBtn.disabled = true;
-        state.awaitingAnswer = true;
         const questionType = (questionData.questionType || state.questionFormat || 'multiple-choice').toLowerCase();
         choicesList.classList.toggle('is-identification', questionType === 'identification');
         choicesList.setAttribute('role', questionType === 'multiple-choice' ? 'group' : 'presentation');
@@ -276,7 +248,6 @@
 
           if (!choiceObjects.length) {
             choicesList.innerHTML = '<p class="quiz-summary">Gemini did not return answer choices for this question.</p>';
-            state.awaitingAnswer = false;
             nextQuestionBtn.disabled = false;
             return;
           }
@@ -287,47 +258,63 @@
           `).join('');
 
           choicesList.querySelectorAll('.choice-btn').forEach((button) => {
-            button.addEventListener('click', () => handleChoice(button, questionData));
+            button.addEventListener('click', () => handleChoice(button));
           });
         }
 
         nextQuestionBtn.textContent = state.index === state.order.length - 1 ? 'Finish quiz' : 'Next question';
       };
 
-      const handleChoice = (button, questionData) => {
-        if (!state.awaitingAnswer) return;
-        state.awaitingAnswer = false;
+      const handleChoice = (button) => {
+        // Store the user's answer
         const isCorrect = button.dataset.correct === 'true';
-        if (isCorrect) {
-          state.score += 1;
-          quizFeedback.textContent = 'Correct! Great recall.';
-          button.classList.add('choice-correct');
-        } else {
-          quizFeedback.textContent = 'Incorrect. Review the explanation below.';
-          button.classList.add('choice-incorrect');
-        }
-
+        state.userAnswers[state.index] = isCorrect;
+        
+        // Disable all buttons and highlight selected
         choicesList.querySelectorAll('.choice-btn').forEach((choiceBtn) => {
           choiceBtn.disabled = true;
-          if (choiceBtn.dataset.correct === 'true') {
-            choiceBtn.classList.add('choice-correct');
+          if (choiceBtn === button) {
+            choiceBtn.classList.add('choice-selected');
           }
         });
-
-        if (questionData.answerExplanation) {
-          quizFeedback.textContent += ` ${questionData.answerExplanation}`;
-        }
 
         nextQuestionBtn.disabled = false;
       };
 
       const finishQuiz = () => {
+        // Calculate score from stored answers
+        state.score = 0;
+        state.userAnswers.forEach((answer, idx) => {
+          const questionData = state.quizItems[state.order[idx]];
+          const questionType = (questionData.questionType || state.questionFormat || 'multiple-choice').toLowerCase();
+          
+          if (questionType === 'identification') {
+            const { isCorrect } = evaluateIdentificationAnswer(answer, questionData);
+            if (isCorrect) state.score += 1;
+          } else {
+            // For multiple choice, answer is already a boolean
+            if (answer === true) state.score += 1;
+          }
+        });
+
+        const ratio = state.score / state.order.length;
+        const percentage = Math.round(ratio * 100);
+        
+        // Show popup with results
+        const encouragement = ratio === 1
+          ? 'Perfect score! 🎉'
+          : ratio >= 0.7
+            ? 'Great job! 👏'
+            : 'Keep practicing! 💪';
+        
+        alert(`Quiz Complete!\\n\\n${encouragement}\\n\\nYour Score: ${state.score} / ${state.order.length} (${percentage}%)`);
+        
+        // Show results section
         quizSection.hidden = true;
         resultsSection.hidden = false;
         setModeNote('');
         retakeQuizBtn.disabled = false;
-        scoreLine.textContent = `You scored ${state.score} out of ${state.order.length} questions.`;
-        const ratio = state.score / state.order.length;
+        scoreLine.textContent = `You scored ${state.score} out of ${state.order.length} questions (${percentage}%).`;
         encouragementText.textContent = ratio === 1
           ? 'Perfect score! Try another topic or retake for practice.'
           : ratio >= 0.7
@@ -341,7 +328,7 @@
         state.order = shuffle(Array.from({ length: state.quizItems.length }, (_, idx) => idx));
         state.index = 0;
         state.score = 0;
-        state.awaitingAnswer = true;
+        state.userAnswers = [];
         progressLabel.textContent = `0 / ${state.order.length}`;
         quizSection.hidden = false;
         resultsSection.hidden = true;
@@ -365,15 +352,7 @@
         startQuiz();
       });
 
-      backBtn.addEventListener('click', () => {
-        window.location.href = 'reviewer.html';
-      });
-
       reviewCardsBtn.addEventListener('click', () => {
-        window.location.href = 'reviewer.html';
-      });
-
-      goToReviewerBtn.addEventListener('click', () => {
         window.location.href = 'reviewer.html';
       });
 
