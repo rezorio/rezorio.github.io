@@ -26,47 +26,48 @@
       <div class="form-field">
         <label for="pdfInput">Attach a PDF (optional)</label>
         <p class="field-hint">Upload lecture notes, reviewers, or any PDF under 10&nbsp;MB. We'll extract the text locally and include the highlights in your prompt.</p>
-        <input id="pdfInput" type="file" accept="application/pdf" />
-        <div class="pdf-status" id="pdfStatus" hidden>
-          <div>
-            <p id="pdfStatusText"></p>
-            <p class="field-hint" id="pdfMetaText"></p>
+        <div class="pdf-upload-wrapper" id="pdfInputWrapper" data-tone="idle">
+          <input id="pdfInput" type="file" accept="application/pdf" />
+          <button type="button" id="clearPdfBtn" class="ghost-button btn-compact" hidden>Remove PDF</button>
+        </div>
+        <p class="field-hint pdf-helper" id="pdfStatusText">No PDF attached yet. We'll lean on your typed topic.</p>
+        <p class="field-hint pdf-helper" id="pdfMetaText" hidden></p>
+      </div>
+
+      <div class="form-field generation-options">
+        <p class="field-hint">Tune how many cards we create and how the quiz should behave before generating.</p>
+        <div class="generation-options-grid">
+          <div class="option-card">
+            <label for="questionPreset">How many questions?</label>
+            <div class="count-control">
+              <select id="questionPreset">
+                <option value="10">10 questions</option>
+                <option value="20">20 questions</option>
+                <option value="30">30 questions</option>
+                <option value="40">40 questions</option>
+                <option value="50">50 questions</option>
+                <option value="custom">Custom (1-100)</option>
+              </select>
+              <input type="number" id="customCount" min="1" max="100" placeholder="25" aria-label="Custom question count" disabled />
+            </div>
           </div>
-          <button type="button" id="clearPdfBtn" class="ghost-button btn-compact">Remove PDF</button>
+          <div class="option-card">
+            <label for="questionFormat">Quiz format</label>
+            <p class="field-hint">Pick how you want the quiz to behave when testing later on.</p>
+            <select id="questionFormat">
+              <option value="multiple-choice">Multiple choice (4 options)</option>
+              <option value="identification">Identification (typed answer)</option>
+            </select>
+          </div>
         </div>
-      </div>
-
-      <div class="form-field">
-        <label for="questionPreset">How many questions?</label>
-        <div class="count-control">
-          <select id="questionPreset">
-            <option value="10">10 questions</option>
-            <option value="20">20 questions</option>
-            <option value="30">30 questions</option>
-            <option value="40">40 questions</option>
-            <option value="50">50 questions</option>
-            <option value="custom">Custom (1-100)</option>
-          </select>
-          <input type="number" id="customCount" min="1" max="100" placeholder="25" aria-label="Custom question count" disabled />
+        <div class="reviewer-actions generation-actions">
+          <button id="generateBtn" type="button">
+            <i class="fas fa-brain"></i>&nbsp;Generate reviewer
+          </button>
+          <button id="resetBtn" type="button" class="ghost-button">
+            <i class="fas fa-rotate"></i>&nbsp;Reset
+          </button>
         </div>
-      </div>
-
-      <div class="form-field">
-        <label for="questionFormat">Quiz format</label>
-        <p class="field-hint">Pick how you want the quiz to behave when testing later on.</p>
-        <select id="questionFormat">
-          <option value="multiple-choice">Multiple choice (4 options)</option>
-          <option value="identification">Identification (typed answer)</option>
-        </select>
-      </div>
-
-      <div class="form-field reviewer-actions">
-        <button id="generateBtn" type="button">
-          <i class="fas fa-brain"></i>&nbsp;Generate reviewer
-        </button>
-        <button id="resetBtn" type="button" class="ghost-button">
-          <i class="fas fa-rotate"></i>&nbsp;Reset
-        </button>
       </div>
     </section>
 
@@ -130,7 +131,7 @@
       const customCountInput = document.getElementById('customCount');
       const questionFormatSelect = document.getElementById('questionFormat');
       const pdfInput = document.getElementById('pdfInput');
-      const pdfStatus = document.getElementById('pdfStatus');
+      const pdfInputWrapper = document.getElementById('pdfInputWrapper');
       const pdfStatusText = document.getElementById('pdfStatusText');
       const pdfMetaText = document.getElementById('pdfMetaText');
       const clearPdfBtn = document.getElementById('clearPdfBtn');
@@ -152,6 +153,7 @@
       const STORAGE_KEY = 'reviewerQuizData';
       const PDF_SIZE_LIMIT = 10 * 1024 * 1024; // 10 MB
       const PDF_SNIPPET_CHARS = 8000;
+      const DEFAULT_PDF_HINT = 'No PDF attached yet. We\'ll lean on your typed topic.';
 
       const state = {
         reviewerEntries: [],
@@ -161,9 +163,11 @@
         questionFormat: 'multiple-choice',
         pdfText: '',
         pdfMeta: null,
-        usePdf: true,
+        usePdf: false,
         currentCardIndex: 0,
       };
+
+      setPdfStatus(DEFAULT_PDF_HINT, { tone: 'idle', hasFile: false });
 
       /**
        * Updates the status ribbon tone + message.
@@ -182,22 +186,24 @@
 
       const formatFileSize = (bytes) => `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 
-      const setPdfStatus = (message, { meta = '', tone = 'info', show = true } = {}) => {
-        if (!show) {
-          pdfStatus.hidden = true;
-          pdfStatusText.textContent = '';
-          pdfMetaText.textContent = '';
-          return;
+      const setPdfStatus = (message = DEFAULT_PDF_HINT, { meta = '', tone = 'info', hasFile = false } = {}) => {
+        if (!pdfInputWrapper) return;
+        pdfInputWrapper.dataset.tone = tone;
+        pdfInputWrapper.classList.toggle('has-file', hasFile);
+        if (pdfStatusText) {
+          pdfStatusText.textContent = message || DEFAULT_PDF_HINT;
         }
-        pdfStatus.hidden = false;
-        pdfStatus.dataset.tone = tone;
-        pdfStatusText.textContent = message;
-        if (meta) {
-          pdfMetaText.hidden = false;
-          pdfMetaText.textContent = meta;
-        } else {
-          pdfMetaText.hidden = true;
-          pdfMetaText.textContent = '';
+        if (pdfMetaText) {
+          if (meta) {
+            pdfMetaText.hidden = false;
+            pdfMetaText.textContent = meta;
+          } else {
+            pdfMetaText.hidden = true;
+            pdfMetaText.textContent = '';
+          }
+        }
+        if (clearPdfBtn) {
+          clearPdfBtn.hidden = !hasFile;
         }
       };
 
@@ -208,7 +214,7 @@
         state.pdfText = '';
         state.pdfMeta = null;
         state.usePdf = false;
-        setPdfStatus('', { show: false });
+        setPdfStatus(DEFAULT_PDF_HINT, { tone: 'idle', hasFile: false });
       };
 
       const extractPdfText = async (file) => {
@@ -239,12 +245,11 @@
         }
         if (file.size > PDF_SIZE_LIMIT) {
           clearPdfSelection(false);
-          setPdfStatus('PDF exceeds the 10 MB limit. Please choose a smaller file.', { tone: 'error' });
-          pdfStatus.hidden = false;
+          setPdfStatus('PDF exceeds the 10 MB limit. Please choose a smaller file.', { tone: 'error', hasFile: false });
           return;
         }
 
-        setPdfStatus('Extracting text from PDF…', { tone: 'info' });
+        setPdfStatus('Extracting text from PDF…', { tone: 'info', hasFile: false });
         try {
           const { text, pages } = await extractPdfText(file);
           if (!text) {
@@ -253,14 +258,15 @@
           state.pdfText = text;
           state.pdfMeta = { name: file.name, pages, size: file.size };
           state.usePdf = true;
-          setPdfStatus('PDF ready. We will include key snippets unless you disable it below.', {
+          setPdfStatus('PDF ready. We will include key snippets unless you remove it.', {
             meta: `${file.name} • ${pages} page(s) • ${formatFileSize(file.size)}`,
-            tone: 'info',
+            tone: 'success',
+            hasFile: true,
           });
         } catch (error) {
           console.error('Failed to read PDF', error);
           clearPdfSelection(false);
-          setPdfStatus(error.message || 'Unable to read PDF contents.', { tone: 'error' });
+          setPdfStatus(error.message || 'Unable to read PDF contents.', { tone: 'error', hasFile: false });
         }
       };
 
@@ -501,7 +507,7 @@ Guidelines:
         const pdfSnippet = state.usePdf && state.pdfText ? state.pdfText : '';
         const selectedFormat = questionFormatSelect.value;
         if (!typedTopic && !pdfSnippet) {
-          updateStatus('Attach a PDF before generating.', 'error');
+          updateStatus('Type a topic or attach a PDF before generating.', 'error');
           return;
         }
         if (!GEMINI_API_KEY?.trim()) {
@@ -603,7 +609,7 @@ Guidelines:
       pdfInput.addEventListener('change', handlePdfChange);
       clearPdfBtn.addEventListener('click', () => {
         clearPdfSelection();
-        setPdfStatus('Removed the PDF. Only your typed topic will be sent to Gemini.', { tone: 'info', show: true });
+        setPdfStatus('Removed the PDF. Only your typed topic will be sent to Gemini.', { tone: 'info', hasFile: false });
       });
       })();
     });
