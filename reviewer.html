@@ -167,8 +167,6 @@
         currentCardIndex: 0,
       };
 
-      setPdfStatus(DEFAULT_PDF_HINT, { tone: 'idle', hasFile: false });
-
       /**
        * Updates the status ribbon tone + message.
        * @param {string} message
@@ -498,6 +496,9 @@ Guidelines:
           localStorage.removeItem(STORAGE_KEY);
         }
       };
+
+      // Initialize PDF status UI
+      setPdfStatus(DEFAULT_PDF_HINT, { tone: 'idle', hasFile: false });
 
       questionPreset.addEventListener('change', toggleCustomCount);
       hydrateFromStorage();
