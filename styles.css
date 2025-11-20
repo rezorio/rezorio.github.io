@@ -1133,20 +1133,79 @@ body.reviewer-page.apps-page { padding-top: 64px; }
 .section-heading { display: grid; gap: 6px; }
 .section-heading h2 { display: flex; align-items: center; gap: 10px; font-size: 1.05rem; margin: 0; }
 .section-heading p { margin: 0; color: var(--muted); font-size: 0.95rem; }
-.reviewer-cards { display: grid; gap: 12px; }
+.reviewer-card-stage {
+  display: grid;
+  gap: 16px;
+}
+.reviewer-card-stage article {
+  min-height: 220px;
+}
 .review-card {
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px;
+  border-radius: 18px;
+  padding: 20px;
   background: #fffdf8;
-  box-shadow: inset 0 1px 0 rgba(59,47,47,0.05);
+  box-shadow: 0 12px 30px rgba(59, 47, 47, 0.12);
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
-.review-card h3 { margin: 0; font-size: 1rem; color: var(--text); }
-.review-card p { margin: 0; color: var(--muted); }
-.review-card .takeaway { color: var(--text); font-weight: 500; }
+.review-card.index-card {
+  position: relative;
+  isolation: isolate;
+}
+.review-card.index-card::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border: 1px dashed rgba(217, 201, 184, 0.6);
+  border-radius: 14px;
+  pointer-events: none;
+  z-index: -1;
+}
+.review-card h3 { margin: 0; font-size: 1.1rem; color: var(--text); }
+.review-card p { margin: 0; color: var(--muted); line-height: 1.5; }
+.review-card .takeaway { color: var(--text); font-weight: 600; }
 .review-card .memory { color: var(--muted); font-style: italic; }
+.card-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.card-index {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: #f1e4d3;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+.reviewer-card-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.card-progress {
+  margin: 0;
+  font-weight: 600;
+  color: var(--muted);
+}
+.card-nav {
+  display: flex;
+  gap: 10px;
+}
+.card-nav button {
+  min-width: 130px;
+}
+@media (max-width: 520px) {
+  .reviewer-card-controls { flex-direction: column; align-items: stretch; }
+  .card-nav { width: 100%; }
+  .card-nav button { flex: 1; }
+}
 .pdf-status {
   margin-top: 10px;
   padding: 12px 14px;

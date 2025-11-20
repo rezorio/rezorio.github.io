@@ -71,7 +71,22 @@
         <h2><i class="fas fa-book"></i>&nbsp;Reviewer</h2>
         <p>Scan these concise definitions before testing yourself.</p>
       </div>
-      <div class="reviewer-cards" id="reviewerList"></div>
+      <div class="reviewer-card-stage" id="reviewerCardContainer" hidden>
+        <article class="review-card index-card" id="reviewerActiveCard" aria-live="polite"></article>
+        <div class="reviewer-card-controls">
+          <p class="card-progress" id="reviewerCardPosition">Card 0 of 0</p>
+          <div class="card-nav">
+            <button type="button" class="ghost-button btn-compact" id="prevReviewerBtn" aria-label="Previous reviewer card">
+              <i class="fas fa-arrow-left"></i>
+              <span>Previous</span>
+            </button>
+            <button type="button" class="ghost-button btn-compact" id="nextReviewerBtn" aria-label="Next reviewer card">
+              <span>Next</span>
+              <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
       <div class="reviewer-cta" id="quizCta" hidden>
         <div>
           <p class="quiz-topic" id="quizTopicLabel"></p>
@@ -112,7 +127,11 @@
       const resetBtn = document.getElementById('resetBtn');
       const statusBox = document.getElementById('statusBox');
       const reviewerSection = document.getElementById('reviewerSection');
-      const reviewerList = document.getElementById('reviewerList');
+      const reviewerCardContainer = document.getElementById('reviewerCardContainer');
+      const reviewerActiveCard = document.getElementById('reviewerActiveCard');
+      const reviewerCardPosition = document.getElementById('reviewerCardPosition');
+      const prevReviewerBtn = document.getElementById('prevReviewerBtn');
+      const nextReviewerBtn = document.getElementById('nextReviewerBtn');
       const quizCta = document.getElementById('quizCta');
       const takeQuizBtn = document.getElementById('takeQuizBtn');
       const quizTopicLabel = document.getElementById('quizTopicLabel');
@@ -130,6 +149,7 @@
         pdfText: '',
         pdfMeta: null,
         usePdf: true,
+        currentCardIndex: 0,
       };
 
       /**
@@ -368,27 +388,53 @@ Guidelines:
         }
       };
 
+      const buildCardMarkup = (entry, index) => {
+        const title = entry.term || `Item ${index + 1}`;
+        const definition = entry.definition || 'Definition unavailable.';
+        const keyTakeaway = entry.keyTakeaway ? `<p class="takeaway"><strong>Key takeaway:</strong> ${entry.keyTakeaway}</p>` : '';
+        const memoryHook = entry.memoryHook ? `<p class="memory"><strong>Memory hook:</strong> ${entry.memoryHook}</p>` : '';
+        return `<div class="card-header">
+            <p class="card-index">${index + 1}</p>
+            <h3>${title}</h3>
+          </div>
+          <p>${definition}</p>
+          ${keyTakeaway}
+          ${memoryHook}`;
+      };
+
+      const updateCardControls = () => {
+        const total = state.reviewerEntries.length;
+        const { currentCardIndex } = state;
+        reviewerCardPosition.textContent = `Card ${total ? currentCardIndex + 1 : 0} of ${total}`;
+        prevReviewerBtn.disabled = currentCardIndex <= 0;
+        nextReviewerBtn.disabled = total === 0 || currentCardIndex >= total - 1;
+      };
+
+      const showReviewerCard = (index) => {
+        const total = state.reviewerEntries.length;
+        if (!total) {
+          reviewerActiveCard.innerHTML = '<p>No reviewer cards yet. Generate one to start studying.</p>';
+          reviewerCardContainer.hidden = true;
+          updateCardControls();
+          return;
+        }
+        const nextIndex = Math.min(Math.max(index, 0), total - 1);
+        state.currentCardIndex = nextIndex;
+        reviewerActiveCard.innerHTML = buildCardMarkup(state.reviewerEntries[nextIndex], nextIndex);
+        reviewerCardContainer.hidden = false;
+        updateCardControls();
+      };
+
       /**
-       * Renders reviewer cards.
+       * Renders reviewer cards as an index-card slider.
        * @param {{ term: string; definition: string; keyTakeaway?: string; memoryHook?: string; }[]} entries
        * @param {{ focusButton?: boolean }} options
        */
       const renderReviewer = (entries, { focusButton = true } = {}) => {
-        const cards = entries.map((entry, index) => {
-          const title = entry.term || `Item ${index + 1}`;
-          const definition = entry.definition || 'Definition unavailable.';
-          const keyTakeaway = entry.keyTakeaway ? `<p class="takeaway"><strong>Key takeaway:</strong> ${entry.keyTakeaway}</p>` : '';
-          const memoryHook = entry.memoryHook ? `<p class="memory"><strong>Memory hook:</strong> ${entry.memoryHook}</p>` : '';
-          return `<article class="review-card">
-            <h3>${title}</h3>
-            <p>${definition}</p>
-            ${keyTakeaway}
-            ${memoryHook}
-          </article>`;
-        });
-        reviewerList.innerHTML = cards.join('');
+        state.currentCardIndex = 0;
         reviewerSection.hidden = false;
         quizCta.hidden = false;
+        showReviewerCard(0);
         setQuizMetaLabels();
         if (focusButton) {
           takeQuizBtn.focus();
@@ -484,15 +530,30 @@ Guidelines:
         toggleCustomCount();
         clearPdfSelection();
         reviewerSection.hidden = true;
-        reviewerList.innerHTML = '';
+        reviewerCardContainer.hidden = true;
+        reviewerActiveCard.innerHTML = '';
+        reviewerCardPosition.textContent = 'Card 0 of 0';
         quizCta.hidden = true;
         state.reviewerEntries = [];
         state.quizItems = [];
+        state.currentCardIndex = 0;
         state.topic = '';
         state.questionCount = 0;
         setQuizMetaLabels();
         localStorage.removeItem(STORAGE_KEY);
         updateStatus('Cleared inputs. Describe a fresh topic to begin again.', 'info');
+      });
+
+      prevReviewerBtn.addEventListener('click', () => {
+        if (state.currentCardIndex > 0) {
+          showReviewerCard(state.currentCardIndex - 1);
+        }
+      });
+
+      nextReviewerBtn.addEventListener('click', () => {
+        if (state.currentCardIndex < state.reviewerEntries.length - 1) {
+          showReviewerCard(state.currentCardIndex + 1);
+        }
       });
 
       takeQuizBtn.addEventListener('click', () => {
