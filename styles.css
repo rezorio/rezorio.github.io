@@ -1502,6 +1502,138 @@ body.reviewer-page.apps-page { padding-top: 64px; }
   .reviewer-cta { flex-direction: column; align-items: flex-start; }
 }
 
+/* AdSense layout and placeholders */
+.reviewer-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 1024px) {
+  .reviewer-layout {
+    grid-template-columns: 200px 1fr 200px;
+  }
+}
+
+.ads-column {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .ads-column {
+    display: block;
+    position: sticky;
+    top: 80px;
+    align-self: start;
+  }
+}
+
+.reviewer-main {
+  min-width: 0;
+}
+
+.adsense-card {
+  background: #fff;
+  border: 1px solid #eadfce;
+  border-radius: var(--radius);
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(139, 115, 85, 0.08);
+}
+
+.adsense-card__label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+
+.adsense-card__note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.adsense-placeholder {
+  min-height: 250px;
+  background: linear-gradient(135deg, #f7efe5 0%, #fff7ed 100%);
+  border: 2px dashed #d9c9b8;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.adsense-placeholder span {
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.ads-mobile-slot {
+  display: block;
+  margin: 24px 0;
+}
+
+@media (min-width: 1024px) {
+  .ads-mobile-slot {
+    display: none;
+  }
+}
+
+.adsense-instructions {
+  background: #fffdf8;
+  border: 1px solid #eadfce;
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-top: 32px;
+  box-shadow: var(--shadow);
+}
+
+.adsense-instructions h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
+.adsense-instructions ol {
+  margin: 0;
+  padding-left: 24px;
+  display: grid;
+  gap: 12px;
+}
+
+.adsense-instructions li {
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.adsense-instructions code {
+  background: rgba(139, 115, 85, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #8b7355;
+  font-family: 'Courier New', monospace;
+  word-break: break-all;
+}
+
+.adsense-instructions__note {
+  margin: 16px 0 0 0;
+  padding: 12px;
+  background: rgba(139, 115, 85, 0.05);
+  border-left: 3px solid #8b7355;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 /* Reviewer quiz standalone page */
 body.reviewer-quiz-page.apps-page { padding-top: 64px; }
 .quiz-status {
