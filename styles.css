@@ -1502,7 +1502,8 @@ body.reviewer-page.apps-page { padding-top: 64px; }
   .reviewer-cta { flex-direction: column; align-items: flex-start; }
 }
 
-/* AdSense layout and placeholders */
+/* AdSense layout and placeholders - COMMENTED OUT */
+/* 
 .reviewer-layout {
   display: grid;
   grid-template-columns: 1fr;
@@ -1633,6 +1634,7 @@ body.reviewer-page.apps-page { padding-top: 64px; }
   color: var(--muted);
   font-size: 0.9rem;
 }
+*/
 
 /* Reviewer quiz standalone page */
 body.reviewer-quiz-page.apps-page { padding-top: 64px; }
