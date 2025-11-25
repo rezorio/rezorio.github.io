@@ -1,20 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reviewer</title>
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-</head>
-
-<body class="apps-page reviewer-page">
-  <a href="apps.html" class="apps-button back-button">Apps</a>
-
-  <div class="container reviewer-container">
-    <div class="reviewer-layout">
-      <!-- <aside class="ads-column ads-column-left" aria-label="Desktop AdSense slot">
+<div class="container reviewer-container">
+  <div class="reviewer-layout">
+    <!-- <aside class="ads-column ads-column-left" aria-label="Desktop AdSense slot">
         <div class="adsense-card">
           <p class="adsense-card__label">AdSense slot</p>
           <p class="adsense-card__note">Desktop sidebar ad</p>
@@ -24,132 +11,132 @@
         </div>
       </aside> -->
 
-      <div class="reviewer-main">
-        <h1>Reviewer</h1>
-        <p class="apps-intro reviewer-intro">
-          Create AI-powered study materials from text, PDFs, or videos. Get concise reviewer cards plus a randomized
-          quizzes.
-        </p>
+    <div class="reviewer-main">
+      <h1>Reviewer</h1>
+      <p class="apps-intro reviewer-intro">
+        Create AI-powered study materials from text, PDFs, or videos. Get concise reviewer cards plus a randomized
+        quizzes.
+      </p>
 
-        <section class="reviewer-form" id="reviewerForm" role="form" aria-label="Generate AI reviewer">
+      <section class="reviewer-form" id="reviewerForm" role="form" aria-label="Generate AI reviewer">
+        <div class="form-field">
+          <label>Choose your input method</label>
+          <p class="field-hint">Select how you want to create your reviewer. You can combine multiple sources.</p>
+          <div class="input-method-tabs">
+            <button type="button" class="tab-btn active" data-tab="text" id="textTabBtn">
+              <i class="fas fa-keyboard"></i>&nbsp;Text
+            </button>
+            <button type="button" class="tab-btn" data-tab="pdf" id="pdfTabBtn">
+              <i class="fas fa-file-pdf"></i>&nbsp;PDF
+            </button>
+            <button type="button" class="tab-btn" data-tab="video" id="videoTabBtn">
+              <i class="fas fa-video"></i>&nbsp;Video
+            </button>
+          </div>
+        </div>
+
+        <div class="tab-content active" id="textTab">
           <div class="form-field">
-            <label>Choose your input method</label>
-            <p class="field-hint">Select how you want to create your reviewer. You can combine multiple sources.</p>
-            <div class="input-method-tabs">
-              <button type="button" class="tab-btn active" data-tab="text" id="textTabBtn">
-                <i class="fas fa-keyboard"></i>&nbsp;Text
-              </button>
-              <button type="button" class="tab-btn" data-tab="pdf" id="pdfTabBtn">
-                <i class="fas fa-file-pdf"></i>&nbsp;PDF
-              </button>
-              <button type="button" class="tab-btn" data-tab="video" id="videoTabBtn">
-                <i class="fas fa-video"></i>&nbsp;Video
-              </button>
-            </div>
+            <label for="topicInput">What do you want to study?</label>
+            <p class="field-hint">Describe your topic in detail. The more specific, the better the reviewer.</p>
+            <textarea id="topicInput" rows="4"
+              placeholder="e.g., Photosynthesis process in plants, World War II key events, JavaScript async/await..."></textarea>
           </div>
+        </div>
 
-          <div class="tab-content active" id="textTab">
-            <div class="form-field">
-              <label for="topicInput">What do you want to study?</label>
-              <p class="field-hint">Describe your topic in detail. The more specific, the better the reviewer.</p>
-              <textarea id="topicInput" rows="4"
-                placeholder="e.g., Photosynthesis process in plants, World War II key events, JavaScript async/await..."></textarea>
-            </div>
-          </div>
-
-          <div class="tab-content" id="pdfTab" hidden>
-            <div class="form-field">
-              <label for="pdfInput">Upload PDF Document</label>
-              <p class="field-hint">Upload lecture notes, textbooks, or any PDF under 10&nbsp;MB. We'll extract and
-                analyze the content.</p>
-              <div class="upload-area" id="pdfUploadArea">
-                <input id="pdfInput" type="file" accept="application/pdf" hidden />
-                <div class="upload-placeholder" id="pdfPlaceholder">
-                  <i class="fas fa-cloud-upload-alt"></i>
-                  <p>Click to upload or drag & drop</p>
-                  <span>PDF files up to 10 MB</span>
-                </div>
-                <div class="upload-preview" id="pdfPreview" hidden>
-                  <i class="fas fa-file-pdf"></i>
-                  <div class="upload-info">
-                    <p class="upload-name" id="pdfName"></p>
-                    <p class="upload-meta" id="pdfMeta"></p>
-                  </div>
-                  <button type="button" class="remove-upload-btn" id="removePdfBtn" aria-label="Remove PDF">
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
+        <div class="tab-content" id="pdfTab" hidden>
+          <div class="form-field">
+            <label for="pdfInput">Upload PDF Document</label>
+            <p class="field-hint">Upload lecture notes, textbooks, or any PDF under 10&nbsp;MB. We'll extract and
+              analyze the content.</p>
+            <div class="upload-area" id="pdfUploadArea">
+              <input id="pdfInput" type="file" accept="application/pdf" hidden />
+              <div class="upload-placeholder" id="pdfPlaceholder">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Click to upload or drag & drop</p>
+                <span>PDF files up to 10 MB</span>
               </div>
-              <p class="field-hint upload-status" id="pdfStatus"></p>
-            </div>
-          </div>
-
-          <div class="tab-content" id="videoTab" hidden>
-            <div class="form-field">
-              <label for="videoInput">Upload Video File</label>
-              <p class="field-hint">Upload lecture recordings, tutorials, or educational videos. Gemini will analyze and
-                summarize key points.</p>
-              <div class="upload-area" id="videoUploadArea">
-                <input id="videoInput" type="file" accept="video/*" hidden />
-                <div class="upload-placeholder" id="videoPlaceholder">
-                  <i class="fas fa-cloud-upload-alt"></i>
-                  <p>Click to upload or drag & drop</p>
-                  <span>Video files (MP4, MOV, AVI, etc.)</span>
+              <div class="upload-preview" id="pdfPreview" hidden>
+                <i class="fas fa-file-pdf"></i>
+                <div class="upload-info">
+                  <p class="upload-name" id="pdfName"></p>
+                  <p class="upload-meta" id="pdfMeta"></p>
                 </div>
-                <div class="upload-preview" id="videoPreview" hidden>
-                  <i class="fas fa-video"></i>
-                  <div class="upload-info">
-                    <p class="upload-name" id="videoName"></p>
-                    <p class="upload-meta" id="videoMeta"></p>
-                  </div>
-                  <button type="button" class="remove-upload-btn" id="removeVideoBtn" aria-label="Remove video">
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
+                <button type="button" class="remove-upload-btn" id="removePdfBtn" aria-label="Remove PDF">
+                  <i class="fas fa-times"></i>
+                </button>
               </div>
-              <p class="field-hint upload-status" id="videoStatus"></p>
             </div>
+            <p class="field-hint upload-status" id="pdfStatus"></p>
           </div>
+        </div>
 
-          <div class="form-field generation-options">
-            <p class="field-hint">Tune how many cards we create and how the quiz should behave before generating.</p>
-            <div class="generation-options-grid">
-              <div class="option-card">
-                <label for="questionPreset">How many questions?</label>
-                <div class="count-control">
-                  <select id="questionPreset">
-                    <option value="10">10 questions</option>
-                    <option value="20">20 questions</option>
-                    <option value="30">30 questions</option>
-                    <option value="40">40 questions</option>
-                    <option value="50">50 questions</option>
-                    <option value="custom">Custom (1-100)</option>
-                  </select>
-                  <input type="number" id="customCount" min="1" max="100" placeholder="25"
-                    aria-label="Custom question count" disabled />
-                </div>
+        <div class="tab-content" id="videoTab" hidden>
+          <div class="form-field">
+            <label for="videoInput">Upload Video File</label>
+            <p class="field-hint">Upload lecture recordings, tutorials, or educational videos. Gemini will analyze and
+              summarize key points.</p>
+            <div class="upload-area" id="videoUploadArea">
+              <input id="videoInput" type="file" accept="video/*" hidden />
+              <div class="upload-placeholder" id="videoPlaceholder">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Click to upload or drag & drop</p>
+                <span>Video files (MP4, MOV, AVI, etc.)</span>
               </div>
-              <div class="option-card">
-                <label for="questionFormat">Quiz format</label>
-                <p class="field-hint">Pick how you want the quiz to behave when testing later on.</p>
-                <select id="questionFormat">
-                  <option value="multiple-choice">Multiple choice (4 options)</option>
-                  <option value="identification">Identification (typed answer)</option>
+              <div class="upload-preview" id="videoPreview" hidden>
+                <i class="fas fa-video"></i>
+                <div class="upload-info">
+                  <p class="upload-name" id="videoName"></p>
+                  <p class="upload-meta" id="videoMeta"></p>
+                </div>
+                <button type="button" class="remove-upload-btn" id="removeVideoBtn" aria-label="Remove video">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            <p class="field-hint upload-status" id="videoStatus"></p>
+          </div>
+        </div>
+
+        <div class="form-field generation-options">
+          <p class="field-hint">Tune how many cards we create and how the quiz should behave before generating.</p>
+          <div class="generation-options-grid">
+            <div class="option-card">
+              <label for="questionPreset">How many questions?</label>
+              <div class="count-control">
+                <select id="questionPreset">
+                  <option value="10">10 questions</option>
+                  <option value="20">20 questions</option>
+                  <option value="30">30 questions</option>
+                  <option value="40">40 questions</option>
+                  <option value="50">50 questions</option>
+                  <option value="custom">Custom (1-100)</option>
                 </select>
+                <input type="number" id="customCount" min="1" max="100" placeholder="25"
+                  aria-label="Custom question count" disabled />
               </div>
             </div>
-            <div class="reviewer-actions generation-actions">
-              <button id="generateBtn" type="button">
-                <i class="fas fa-brain"></i>&nbsp;Generate reviewer
-              </button>
-              <button id="resetBtn" type="button" class="ghost-button">
-                <i class="fas fa-rotate"></i>&nbsp;Reset
-              </button>
+            <div class="option-card">
+              <label for="questionFormat">Quiz format</label>
+              <p class="field-hint">Pick how you want the quiz to behave when testing later on.</p>
+              <select id="questionFormat">
+                <option value="multiple-choice">Multiple choice (4 options)</option>
+                <option value="identification">Identification (typed answer)</option>
+              </select>
             </div>
           </div>
-        </section>
+          <div class="reviewer-actions generation-actions">
+            <button id="generateBtn" type="button">
+              <i class="fas fa-brain"></i>&nbsp;Generate reviewer
+            </button>
+            <button id="resetBtn" type="button" class="ghost-button">
+              <i class="fas fa-rotate"></i>&nbsp;Reset
+            </button>
+          </div>
+        </div>
+      </section>
 
-        <!-- <div class="ads-mobile-slot" aria-label="Mobile AdSense slot">
+      <!-- <div class="ads-mobile-slot" aria-label="Mobile AdSense slot">
       <div class="adsense-card">
         <p class="adsense-card__label">AdSense slot</p>
         <p class="adsense-card__note">Visible only on mobile</p>
@@ -159,50 +146,50 @@
       </div>
     </div> -->
 
-        <div class="advisor-status reviewer-status" id="statusBox" role="status" aria-live="polite">
-          <strong><i class="fas fa-info-circle"></i>&nbsp;Waiting for a topic</strong>
-          <p>Describe the subject you want to review and choose how many entries to generate.</p>
-        </div>
-
-        <section class="reviewer-output" id="reviewerSection" hidden aria-label="Reviewer cards">
-          <div class="section-heading">
-            <h2><i class="fas fa-book"></i>&nbsp;Reviewer</h2>
-            <p>Scan these concise definitions before testing yourself.</p>
-          </div>
-          <div class="reviewer-card-stage" id="reviewerCardContainer" hidden>
-            <article class="review-card index-card" id="reviewerActiveCard" aria-live="polite"></article>
-            <div class="reviewer-card-controls">
-              <p class="card-progress" id="reviewerCardPosition">Card 0 of 0</p>
-              <div class="card-nav">
-                <button type="button" class="ghost-button btn-compact" id="prevReviewerBtn"
-                  aria-label="Previous reviewer card">
-                  <i class="fas fa-arrow-left"></i>
-                  <span>Previous</span>
-                </button>
-                <button type="button" class="ghost-button btn-compact" id="nextReviewerBtn"
-                  aria-label="Next reviewer card">
-                  <span>Next</span>
-                  <i class="fas fa-arrow-right"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="reviewer-cta" id="quizCta" hidden>
-            <div>
-              <p class="quiz-topic" id="quizTopicLabel"></p>
-              <p class="quiz-count" id="quizCountLabel"></p>
-              <p class="quiz-format" id="quizFormatLabel"></p>
-              <p>Ready to test your recall? Launch the quiz to get randomized questions in your selected format.</p>
-            </div>
-            <button id="takeQuizBtn" type="button">
-              <i class="fas fa-question-circle"></i>&nbsp;Take the quiz
-            </button>
-          </div>
-        </section>
-
+      <div class="advisor-status reviewer-status" id="statusBox" role="status" aria-live="polite">
+        <strong><i class="fas fa-info-circle"></i>&nbsp;Waiting for a topic</strong>
+        <p>Describe the subject you want to review and choose how many entries to generate.</p>
       </div>
 
-      <!-- <aside class="ads-column ads-column-right" aria-label="Desktop AdSense slot">
+      <section class="reviewer-output" id="reviewerSection" hidden aria-label="Reviewer cards">
+        <div class="section-heading">
+          <h2><i class="fas fa-book"></i>&nbsp;Reviewer</h2>
+          <p>Scan these concise definitions before testing yourself.</p>
+        </div>
+        <div class="reviewer-card-stage" id="reviewerCardContainer" hidden>
+          <article class="review-card index-card" id="reviewerActiveCard" aria-live="polite"></article>
+          <div class="reviewer-card-controls">
+            <p class="card-progress" id="reviewerCardPosition">Card 0 of 0</p>
+            <div class="card-nav">
+              <button type="button" class="ghost-button btn-compact" id="prevReviewerBtn"
+                aria-label="Previous reviewer card">
+                <i class="fas fa-arrow-left"></i>
+                <span>Previous</span>
+              </button>
+              <button type="button" class="ghost-button btn-compact" id="nextReviewerBtn"
+                aria-label="Next reviewer card">
+                <span>Next</span>
+                <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="reviewer-cta" id="quizCta" hidden>
+          <div>
+            <p class="quiz-topic" id="quizTopicLabel"></p>
+            <p class="quiz-count" id="quizCountLabel"></p>
+            <p class="quiz-format" id="quizFormatLabel"></p>
+            <p>Ready to test your recall? Launch the quiz to get randomized questions in your selected format.</p>
+          </div>
+          <button id="takeQuizBtn" type="button">
+            <i class="fas fa-question-circle"></i>&nbsp;Take the quiz
+          </button>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- <aside class="ads-column ads-column-right" aria-label="Desktop AdSense slot">
         <div class="adsense-card">
           <p class="adsense-card__label">AdSense slot</p>
           <p class="adsense-card__note">Desktop sidebar ad</p>
@@ -211,9 +198,9 @@
           </div>
         </div>
       </aside> -->
-    </div>
+  </div>
 
-    <!-- <section class="adsense-instructions" aria-label="AdSense setup instructions">
+  <!-- <section class="adsense-instructions" aria-label="AdSense setup instructions">
       <h2>How to make AdSense work</h2>
       <ol>
         <li>Add the async AdSense script inside the <code>&lt;head&gt;</code> and replace <code>ca-pub-XXXXXXXX</code> with your publisher ID:<br />
@@ -225,323 +212,323 @@
       </ol>
       <p class="adsense-instructions__note">Use the responsive format so Google can automatically size ads for each slot.</p>
     </section> -->
-  </div>
+</div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous"
-    referrerpolicy="no-referrer"></script>
-  <script>
-    window.addEventListener('load', () => {
-      if (!window.pdfjsLib) {
-        console.error('PDF.js failed to load. Please check the CDN URL.');
-        return;
-      }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous"
+  referrerpolicy="no-referrer"></script>
+<script>
+  window.addEventListener('load', () => {
+    if (!window.pdfjsLib) {
+      console.error('PDF.js failed to load. Please check the CDN URL.');
+      return;
+    }
 
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-      (() => {
-        const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-        const GEMINI_API_KEY = 'AIzaSyD0yPoDs8gg64bNadaaZJIUN056WyJFGXEE'; // TODO: Replace with your Gemini API key.
+    (() => {
+      const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+      const GEMINI_API_KEY = 'AIzaSyD0yPoDs8gg64bNadaaZJIUN056WyJFGXEE'; // TODO: Replace with your Gemini API key.
 
-        // UI Elements
-        const reviewerForm = document.getElementById('reviewerForm');
-        const textTabBtn = document.getElementById('textTabBtn');
-        const pdfTabBtn = document.getElementById('pdfTabBtn');
-        const videoTabBtn = document.getElementById('videoTabBtn');
-        const textTab = document.getElementById('textTab');
-        const pdfTab = document.getElementById('pdfTab');
-        const videoTab = document.getElementById('videoTab');
-        const topicInput = document.getElementById('topicInput');
-        const questionPreset = document.getElementById('questionPreset');
-        const customCountInput = document.getElementById('customCount');
-        const questionFormatSelect = document.getElementById('questionFormat');
+      // UI Elements
+      const reviewerForm = document.getElementById('reviewerForm');
+      const textTabBtn = document.getElementById('textTabBtn');
+      const pdfTabBtn = document.getElementById('pdfTabBtn');
+      const videoTabBtn = document.getElementById('videoTabBtn');
+      const textTab = document.getElementById('textTab');
+      const pdfTab = document.getElementById('pdfTab');
+      const videoTab = document.getElementById('videoTab');
+      const topicInput = document.getElementById('topicInput');
+      const questionPreset = document.getElementById('questionPreset');
+      const customCountInput = document.getElementById('customCount');
+      const questionFormatSelect = document.getElementById('questionFormat');
 
-        // PDF Elements
-        const pdfInput = document.getElementById('pdfInput');
-        const pdfUploadArea = document.getElementById('pdfUploadArea');
-        const pdfPlaceholder = document.getElementById('pdfPlaceholder');
-        const pdfPreview = document.getElementById('pdfPreview');
-        const pdfName = document.getElementById('pdfName');
-        const pdfMeta = document.getElementById('pdfMeta');
-        const pdfStatus = document.getElementById('pdfStatus');
-        const removePdfBtn = document.getElementById('removePdfBtn');
+      // PDF Elements
+      const pdfInput = document.getElementById('pdfInput');
+      const pdfUploadArea = document.getElementById('pdfUploadArea');
+      const pdfPlaceholder = document.getElementById('pdfPlaceholder');
+      const pdfPreview = document.getElementById('pdfPreview');
+      const pdfName = document.getElementById('pdfName');
+      const pdfMeta = document.getElementById('pdfMeta');
+      const pdfStatus = document.getElementById('pdfStatus');
+      const removePdfBtn = document.getElementById('removePdfBtn');
 
-        // Video Elements
-        const videoInput = document.getElementById('videoInput');
-        const videoUploadArea = document.getElementById('videoUploadArea');
-        const videoPlaceholder = document.getElementById('videoPlaceholder');
-        const videoPreview = document.getElementById('videoPreview');
-        const videoName = document.getElementById('videoName');
-        const videoMeta = document.getElementById('videoMeta');
-        const videoStatus = document.getElementById('videoStatus');
-        const removeVideoBtn = document.getElementById('removeVideoBtn');
+      // Video Elements
+      const videoInput = document.getElementById('videoInput');
+      const videoUploadArea = document.getElementById('videoUploadArea');
+      const videoPlaceholder = document.getElementById('videoPlaceholder');
+      const videoPreview = document.getElementById('videoPreview');
+      const videoName = document.getElementById('videoName');
+      const videoMeta = document.getElementById('videoMeta');
+      const videoStatus = document.getElementById('videoStatus');
+      const removeVideoBtn = document.getElementById('removeVideoBtn');
 
-        const generateBtn = document.getElementById('generateBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const statusBox = document.getElementById('statusBox');
-        const reviewerSection = document.getElementById('reviewerSection');
-        const reviewerCardContainer = document.getElementById('reviewerCardContainer');
-        const reviewerActiveCard = document.getElementById('reviewerActiveCard');
-        const reviewerCardPosition = document.getElementById('reviewerCardPosition');
-        const prevReviewerBtn = document.getElementById('prevReviewerBtn');
-        const nextReviewerBtn = document.getElementById('nextReviewerBtn');
-        const quizCta = document.getElementById('quizCta');
-        const takeQuizBtn = document.getElementById('takeQuizBtn');
-        const quizTopicLabel = document.getElementById('quizTopicLabel');
-        const quizCountLabel = document.getElementById('quizCountLabel');
-        const quizFormatLabel = document.getElementById('quizFormatLabel');
+      const generateBtn = document.getElementById('generateBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const statusBox = document.getElementById('statusBox');
+      const reviewerSection = document.getElementById('reviewerSection');
+      const reviewerCardContainer = document.getElementById('reviewerCardContainer');
+      const reviewerActiveCard = document.getElementById('reviewerActiveCard');
+      const reviewerCardPosition = document.getElementById('reviewerCardPosition');
+      const prevReviewerBtn = document.getElementById('prevReviewerBtn');
+      const nextReviewerBtn = document.getElementById('nextReviewerBtn');
+      const quizCta = document.getElementById('quizCta');
+      const takeQuizBtn = document.getElementById('takeQuizBtn');
+      const quizTopicLabel = document.getElementById('quizTopicLabel');
+      const quizCountLabel = document.getElementById('quizCountLabel');
+      const quizFormatLabel = document.getElementById('quizFormatLabel');
 
-        const STORAGE_KEY = 'reviewerQuizData';
-        const PDF_SIZE_LIMIT = 10 * 1024 * 1024; // 10 MB
-        const VIDEO_SIZE_LIMIT = 100 * 1024 * 1024; // 100 MB
-        const PDF_SNIPPET_CHARS = 8000;
+      const STORAGE_KEY = 'reviewerQuizData';
+      const PDF_SIZE_LIMIT = 10 * 1024 * 1024; // 10 MB
+      const VIDEO_SIZE_LIMIT = 100 * 1024 * 1024; // 100 MB
+      const PDF_SNIPPET_CHARS = 8000;
 
-        const state = {
-          reviewerEntries: [],
-          quizItems: [],
-          topic: '',
-          questionCount: 0,
-          questionFormat: 'multiple-choice',
-          pdfText: '',
-          pdfMeta: null,
-          usePdf: false,
-          videoFile: null,
-          videoMeta: null,
-          useVideo: false,
-          videoSummary: '',
-          currentCardIndex: 0,
-          activeTab: 'text',
-        };
+      const state = {
+        reviewerEntries: [],
+        quizItems: [],
+        topic: '',
+        questionCount: 0,
+        questionFormat: 'multiple-choice',
+        pdfText: '',
+        pdfMeta: null,
+        usePdf: false,
+        videoFile: null,
+        videoMeta: null,
+        useVideo: false,
+        videoSummary: '',
+        currentCardIndex: 0,
+        activeTab: 'text',
+      };
 
-        /**
-         * Updates the status ribbon tone + message.
-         * @param {string} message
-         * @param {'info'|'success'|'error'} tone
-         */
-        const updateStatus = (message, tone = 'info') => {
-          statusBox.dataset.tone = tone;
-          const toneIcon = tone === 'success' ? 'fa-circle-check' : tone === 'error' ? 'fa-triangle-exclamation' : 'fa-info-circle';
-          const toneLabel = tone === 'success' ? 'Ready' : tone === 'error' ? 'Issue detected' : 'Working';
-          statusBox.querySelector('strong').innerHTML = `<i class="fas ${toneIcon}"></i>&nbsp;${toneLabel}`;
-          statusBox.querySelector('p').textContent = message;
-        };
+      /**
+       * Updates the status ribbon tone + message.
+       * @param {string} message
+       * @param {'info'|'success'|'error'} tone
+       */
+      const updateStatus = (message, tone = 'info') => {
+        statusBox.dataset.tone = tone;
+        const toneIcon = tone === 'success' ? 'fa-circle-check' : tone === 'error' ? 'fa-triangle-exclamation' : 'fa-info-circle';
+        const toneLabel = tone === 'success' ? 'Ready' : tone === 'error' ? 'Issue detected' : 'Working';
+        statusBox.querySelector('strong').innerHTML = `<i class="fas ${toneIcon}"></i>&nbsp;${toneLabel}`;
+        statusBox.querySelector('p').textContent = message;
+      };
 
-        const sanitizeText = (text) => (text || '').replace(/\s+/g, ' ').trim();
+      const sanitizeText = (text) => (text || '').replace(/\s+/g, ' ').trim();
 
-        const formatFileSize = (bytes) => `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+      const formatFileSize = (bytes) => `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 
-        const formatDuration = (seconds) => {
-          const mins = Math.floor(seconds / 60);
-          const secs = Math.floor(seconds % 60);
-          return `${mins}:${secs.toString().padStart(2, '0')}`;
-        };
+      const formatDuration = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+      };
 
-        /**
-         * Switch between input tabs (text, PDF, video)
-         */
-        const switchTab = (tabName) => {
-          // Update tab buttons
-          [textTabBtn, pdfTabBtn, videoTabBtn].forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.tab === tabName);
+      /**
+       * Switch between input tabs (text, PDF, video)
+       */
+      const switchTab = (tabName) => {
+        // Update tab buttons
+        [textTabBtn, pdfTabBtn, videoTabBtn].forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.tab === tabName);
+        });
+
+        // Update tab content
+        textTab.hidden = tabName !== 'text';
+        pdfTab.hidden = tabName !== 'pdf';
+        videoTab.hidden = tabName !== 'video';
+
+        // Update active classes
+        textTab.classList.toggle('active', tabName === 'text');
+        pdfTab.classList.toggle('active', tabName === 'pdf');
+        videoTab.classList.toggle('active', tabName === 'video');
+
+        state.activeTab = tabName;
+      };
+
+      /**
+       * Handle PDF upload
+       */
+      const handlePdfUpload = async (file) => {
+        if (!file) return;
+
+        if (file.size > PDF_SIZE_LIMIT) {
+          pdfStatus.textContent = '⚠️ PDF exceeds 10 MB limit. Please choose a smaller file.';
+          return;
+        }
+
+        pdfStatus.textContent = '⏳ Extracting text from PDF...';
+        try {
+          const { text, pages } = await extractPdfText(file);
+          if (!text) {
+            throw new Error('No extractable text found in the PDF.');
+          }
+
+          state.pdfText = text;
+          state.pdfMeta = { name: file.name, pages, size: file.size };
+          state.usePdf = true;
+
+          // Show preview
+          pdfPlaceholder.hidden = true;
+          pdfPreview.hidden = false;
+          pdfName.textContent = file.name;
+          pdfMeta.textContent = `${pages} page(s) • ${formatFileSize(file.size)}`;
+          pdfStatus.textContent = '✓ PDF ready. Text extracted successfully.';
+        } catch (error) {
+          console.error('Failed to read PDF', error);
+          pdfStatus.textContent = `❌ ${error.message || 'Unable to read PDF contents.'}`;
+          clearPdfUpload();
+        }
+      };
+
+      /**
+       * Clear PDF upload
+       */
+      const clearPdfUpload = () => {
+        pdfInput.value = '';
+        state.pdfText = '';
+        state.pdfMeta = null;
+        state.usePdf = false;
+        pdfPlaceholder.hidden = false;
+        pdfPreview.hidden = true;
+        pdfStatus.textContent = '';
+      };
+
+      /**
+       * Upload video file to Gemini API and get base64
+       */
+      const uploadVideoToGemini = async (file) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const base64 = reader.result.split(',')[1];
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      };
+
+      /**
+       * Handle video upload
+       */
+      const handleVideoUpload = async (file) => {
+        if (!file) return;
+
+        if (file.size > VIDEO_SIZE_LIMIT) {
+          videoStatus.textContent = '⚠️ Video exceeds 100 MB limit. Please choose a smaller file.';
+          return;
+        }
+
+        videoStatus.textContent = '⏳ Processing video...';
+        try {
+          // Get video metadata
+          const video = document.createElement('video');
+          video.preload = 'metadata';
+
+          await new Promise((resolve, reject) => {
+            video.onloadedmetadata = resolve;
+            video.onerror = reject;
+            video.src = URL.createObjectURL(file);
           });
 
-          // Update tab content
-          textTab.hidden = tabName !== 'text';
-          pdfTab.hidden = tabName !== 'pdf';
-          videoTab.hidden = tabName !== 'video';
+          const duration = video.duration;
+          URL.revokeObjectURL(video.src);
 
-          // Update active classes
-          textTab.classList.toggle('active', tabName === 'text');
-          pdfTab.classList.toggle('active', tabName === 'pdf');
-          videoTab.classList.toggle('active', tabName === 'video');
+          state.videoFile = file;
+          state.videoMeta = { name: file.name, duration, size: file.size };
+          state.useVideo = true;
 
-          state.activeTab = tabName;
-        };
+          // Show preview
+          videoPlaceholder.hidden = true;
+          videoPreview.hidden = false;
+          videoName.textContent = file.name;
+          videoMeta.textContent = `${formatDuration(duration)} • ${formatFileSize(file.size)}`;
+          videoStatus.textContent = '✓ Video ready. Will be analyzed when you generate.';
+        } catch (error) {
+          console.error('Failed to process video', error);
+          videoStatus.textContent = `❌ ${error.message || 'Unable to process video.'}`;
+          clearVideoUpload();
+        }
+      };
 
-        /**
-         * Handle PDF upload
-         */
-        const handlePdfUpload = async (file) => {
-          if (!file) return;
+      /**
+       * Clear video upload
+       */
+      const clearVideoUpload = () => {
+        videoInput.value = '';
+        state.videoFile = null;
+        state.videoMeta = null;
+        state.useVideo = false;
+        state.videoSummary = '';
+        videoPlaceholder.hidden = false;
+        videoPreview.hidden = true;
+        videoStatus.textContent = '';
+      };
 
-          if (file.size > PDF_SIZE_LIMIT) {
-            pdfStatus.textContent = '⚠️ PDF exceeds 10 MB limit. Please choose a smaller file.';
-            return;
+      const extractPdfText = async (file) => {
+        if (!window.pdfjsLib) {
+          throw new Error('PDF.js library is not loaded. Please refresh the page and try again.');
+        }
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let combined = '';
+        for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+          const page = await pdf.getPage(pageNumber);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items.map((item) => item.str).join(' ');
+          combined += ` ${pageText}`;
+          if (combined.length >= PDF_SNIPPET_CHARS) {
+            break;
           }
-
-          pdfStatus.textContent = '⏳ Extracting text from PDF...';
-          try {
-            const { text, pages } = await extractPdfText(file);
-            if (!text) {
-              throw new Error('No extractable text found in the PDF.');
-            }
-
-            state.pdfText = text;
-            state.pdfMeta = { name: file.name, pages, size: file.size };
-            state.usePdf = true;
-
-            // Show preview
-            pdfPlaceholder.hidden = true;
-            pdfPreview.hidden = false;
-            pdfName.textContent = file.name;
-            pdfMeta.textContent = `${pages} page(s) • ${formatFileSize(file.size)}`;
-            pdfStatus.textContent = '✓ PDF ready. Text extracted successfully.';
-          } catch (error) {
-            console.error('Failed to read PDF', error);
-            pdfStatus.textContent = `❌ ${error.message || 'Unable to read PDF contents.'}`;
-            clearPdfUpload();
-          }
-        };
-
-        /**
-         * Clear PDF upload
-         */
-        const clearPdfUpload = () => {
-          pdfInput.value = '';
-          state.pdfText = '';
-          state.pdfMeta = null;
-          state.usePdf = false;
-          pdfPlaceholder.hidden = false;
-          pdfPreview.hidden = true;
-          pdfStatus.textContent = '';
-        };
-
-        /**
-         * Upload video file to Gemini API and get base64
-         */
-        const uploadVideoToGemini = async (file) => {
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-              const base64 = reader.result.split(',')[1];
-              resolve(base64);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          });
-        };
-
-        /**
-         * Handle video upload
-         */
-        const handleVideoUpload = async (file) => {
-          if (!file) return;
-
-          if (file.size > VIDEO_SIZE_LIMIT) {
-            videoStatus.textContent = '⚠️ Video exceeds 100 MB limit. Please choose a smaller file.';
-            return;
-          }
-
-          videoStatus.textContent = '⏳ Processing video...';
-          try {
-            // Get video metadata
-            const video = document.createElement('video');
-            video.preload = 'metadata';
-
-            await new Promise((resolve, reject) => {
-              video.onloadedmetadata = resolve;
-              video.onerror = reject;
-              video.src = URL.createObjectURL(file);
-            });
-
-            const duration = video.duration;
-            URL.revokeObjectURL(video.src);
-
-            state.videoFile = file;
-            state.videoMeta = { name: file.name, duration, size: file.size };
-            state.useVideo = true;
-
-            // Show preview
-            videoPlaceholder.hidden = true;
-            videoPreview.hidden = false;
-            videoName.textContent = file.name;
-            videoMeta.textContent = `${formatDuration(duration)} • ${formatFileSize(file.size)}`;
-            videoStatus.textContent = '✓ Video ready. Will be analyzed when you generate.';
-          } catch (error) {
-            console.error('Failed to process video', error);
-            videoStatus.textContent = `❌ ${error.message || 'Unable to process video.'}`;
-            clearVideoUpload();
-          }
-        };
-
-        /**
-         * Clear video upload
-         */
-        const clearVideoUpload = () => {
-          videoInput.value = '';
-          state.videoFile = null;
-          state.videoMeta = null;
-          state.useVideo = false;
-          state.videoSummary = '';
-          videoPlaceholder.hidden = false;
-          videoPreview.hidden = true;
-          videoStatus.textContent = '';
-        };
-
-        const extractPdfText = async (file) => {
-          if (!window.pdfjsLib) {
-            throw new Error('PDF.js library is not loaded. Please refresh the page and try again.');
-          }
-          const arrayBuffer = await file.arrayBuffer();
-          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-          let combined = '';
-          for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-            const page = await pdf.getPage(pageNumber);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items.map((item) => item.str).join(' ');
-            combined += ` ${pageText}`;
-            if (combined.length >= PDF_SNIPPET_CHARS) {
-              break;
-            }
-          }
-          const snippet = sanitizeText(combined).slice(0, PDF_SNIPPET_CHARS);
-          return { text: snippet, pages: pdf.numPages };
-        };
+        }
+        const snippet = sanitizeText(combined).slice(0, PDF_SNIPPET_CHARS);
+        return { text: snippet, pages: pdf.numPages };
+      };
 
 
-        const toggleCustomCount = () => {
-          const isCustom = questionPreset.value === 'custom';
-          customCountInput.disabled = !isCustom;
-          customCountInput.setAttribute('aria-hidden', String(!isCustom));
-          if (!isCustom) {
-            customCountInput.value = '';
-          } else {
-            customCountInput.focus();
-          }
-        };
+      const toggleCustomCount = () => {
+        const isCustom = questionPreset.value === 'custom';
+        customCountInput.disabled = !isCustom;
+        customCountInput.setAttribute('aria-hidden', String(!isCustom));
+        if (!isCustom) {
+          customCountInput.value = '';
+        } else {
+          customCountInput.focus();
+        }
+      };
 
-        /**
-         * Resolves the requested question total.
-         * @returns {number}
-         */
-        const getQuestionCount = () => {
-          if (questionPreset.value !== 'custom') {
-            return Number(questionPreset.value);
-          }
-          const customValue = Number(customCountInput.value);
-          if (!Number.isInteger(customValue)) {
-            throw new Error('Enter a whole number between 1 and 100.');
-          }
-          if (customValue < 1 || customValue > 100) {
-            throw new Error('Custom question counts must stay between 1 and 100.');
-          }
-          return customValue;
-        };
+      /**
+       * Resolves the requested question total.
+       * @returns {number}
+       */
+      const getQuestionCount = () => {
+        if (questionPreset.value !== 'custom') {
+          return Number(questionPreset.value);
+        }
+        const customValue = Number(customCountInput.value);
+        if (!Number.isInteger(customValue)) {
+          throw new Error('Enter a whole number between 1 and 100.');
+        }
+        if (customValue < 1 || customValue > 100) {
+          throw new Error('Custom question counts must stay between 1 and 100.');
+        }
+        return customValue;
+      };
 
-        /**
-         * Builds the Gemini prompt.
-         * @param {string} topic
-         * @param {number} count
-         * @param {string} pdfSnippet
-         * @param {string} videoSummary
-         * @param {string} format
-         * @returns {string}
-         */
-        const buildPrompt = (topic, count, pdfSnippet, videoSummary, format) => {
-          const topicDirective = topic ? `Study request: ${topic}.` : 'Study request: derive the most important takeaways from the provided reference.';
+      /**
+       * Builds the Gemini prompt.
+       * @param {string} topic
+       * @param {number} count
+       * @param {string} pdfSnippet
+       * @param {string} videoSummary
+       * @param {string} format
+       * @returns {string}
+       */
+      const buildPrompt = (topic, count, pdfSnippet, videoSummary, format) => {
+        const topicDirective = topic ? `Study request: ${topic}.` : 'Study request: derive the most important takeaways from the provided reference.';
 
-          let referenceBlock = '';
-          if (pdfSnippet && videoSummary) {
-            referenceBlock = `Reference materials (keep confidential, summarize for the learner):
+        let referenceBlock = '';
+        if (pdfSnippet && videoSummary) {
+          referenceBlock = `Reference materials (keep confidential, summarize for the learner):
 
 PDF excerpt:
 """
@@ -552,25 +539,25 @@ Video summary:
 """
 ${videoSummary}
 """`;
-          } else if (pdfSnippet) {
-            referenceBlock = `Reference excerpt (keep confidential, summarize it for the learner):
+        } else if (pdfSnippet) {
+          referenceBlock = `Reference excerpt (keep confidential, summarize it for the learner):
 """
 ${pdfSnippet}
 """`;
-          } else if (videoSummary) {
-            referenceBlock = `Video summary (keep confidential, summarize it for the learner):
+        } else if (videoSummary) {
+          referenceBlock = `Video summary (keep confidential, summarize it for the learner):
 """
 ${videoSummary}
 """`;
-          } else {
-            referenceBlock = 'No reference materials uploaded — rely on the study request alone.';
-          }
+        } else {
+          referenceBlock = 'No reference materials uploaded — rely on the study request alone.';
+        }
 
-          const formatDirective = format === 'identification'
-            ? `Quiz style: identification / short-answer. For every quizItems entry, include "questionType": "identification" and an "answerText" string containing the expected response. Do not return "choices" or "answerIndex" for this mode.`
-            : `Quiz style: multiple choice. Each quizItems entry must include "questionType": "multiple-choice", four concise "choices", and "answerIndex" pointing to the correct option.`;
+        const formatDirective = format === 'identification'
+          ? `Quiz style: identification / short-answer. For every quizItems entry, include "questionType": "identification" and an "answerText" string containing the expected response. Do not return "choices" or "answerIndex" for this mode.`
+          : `Quiz style: multiple choice. Each quizItems entry must include "questionType": "multiple-choice", four concise "choices", and "answerIndex" pointing to the correct option.`;
 
-          return `You are an expert study coach. ${topicDirective}
+        return `You are an expert study coach. ${topicDirective}
 ${referenceBlock}
 ${formatDirective}
 Return ONLY a JSON object inside one fenced code block using this schema:
@@ -588,36 +575,36 @@ Guidelines:
 - When in multiple-choice mode, supply 4 concise, distinct choices and set answerIndex to the zero-based correct choice.
 - When in identification mode, skip choices entirely and respond with an informative answerText worth 3-6 words.
 - Use neutral, factual tone. Avoid markdown, LaTeX, or stray commentary.`;
-        };
+      };
 
-        /**
-         * Analyze video with Gemini API
-         * @param {File} videoFile
-         * @param {string} apiKey
-         * @returns {Promise<string>} Video summary
-         */
-        const analyzeVideoWithGemini = async (videoFile, apiKey) => {
-          updateStatus('Uploading and analyzing video with Gemini...', 'info');
+      /**
+       * Analyze video with Gemini API
+       * @param {File} videoFile
+       * @param {string} apiKey
+       * @returns {Promise<string>} Video summary
+       */
+      const analyzeVideoWithGemini = async (videoFile, apiKey) => {
+        updateStatus('Uploading and analyzing video with Gemini...', 'info');
 
-          const base64Video = await uploadVideoToGemini(videoFile);
-          const mimeType = videoFile.type || 'video/mp4';
+        const base64Video = await uploadVideoToGemini(videoFile);
+        const mimeType = videoFile.type || 'video/mp4';
 
-          const response = await fetch(`${API_URL}?key=${encodeURIComponent(apiKey)}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [
-                {
-                  role: 'user',
-                  parts: [
-                    {
-                      inline_data: {
-                        mime_type: mimeType,
-                        data: base64Video
-                      }
-                    },
-                    {
-                      text: `Analyze this educational video and provide a comprehensive summary including:
+        const response = await fetch(`${API_URL}?key=${encodeURIComponent(apiKey)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [
+                  {
+                    inline_data: {
+                      mime_type: mimeType,
+                      data: base64Video
+                    }
+                  },
+                  {
+                    text: `Analyze this educational video and provide a comprehensive summary including:
 1. Main topics and concepts covered
 2. Key points and important information
 3. Any examples, demonstrations, or case studies mentioned
@@ -625,388 +612,388 @@ Guidelines:
 5. Overall learning objectives
 
 Provide a detailed summary that captures all the educational content.`
-                    }
-                  ],
-                },
-              ],
-              safetySettings: [
-                { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-                { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-              ],
-            }),
-          });
+                  }
+                ],
+              },
+            ],
+            safetySettings: [
+              { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+              { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+            ],
+          }),
+        });
 
-          if (!response.ok) {
-            const detail = await response.text();
-            throw new Error(`Gemini video analysis error: ${response.status} ${detail}`);
-          }
+        if (!response.ok) {
+          const detail = await response.text();
+          throw new Error(`Gemini video analysis error: ${response.status} ${detail}`);
+        }
 
-          const data = await response.json();
-          const summary = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (!summary) {
-            throw new Error('Gemini video analysis returned empty response.');
-          }
-          return summary;
-        };
+        const data = await response.json();
+        const summary = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!summary) {
+          throw new Error('Gemini video analysis returned empty response.');
+        }
+        return summary;
+      };
 
-        /**
-         * Calls Gemini and returns structured data.
-         * @param {string} topic
-         * @param {number} count
-         * @param {string} pdfSnippet
-         * @param {string} videoSummary
-         * @param {string} format
-         * @param {string} apiKey
-         * @returns {Promise<{ reviewerEntries: any[]; quizItems: any[]; }>}
-         */
-        const requestGeminiReviewer = async (topic, count, pdfSnippet, videoSummary, format, apiKey) => {
-          const response = await fetch(`${API_URL}?key=${encodeURIComponent(apiKey)}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [
-                {
-                  role: 'user',
-                  parts: [{ text: buildPrompt(topic, count, pdfSnippet, videoSummary, format) }],
-                },
-              ],
-              safetySettings: [
-                { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-                { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-              ],
-            }),
-          });
+      /**
+       * Calls Gemini and returns structured data.
+       * @param {string} topic
+       * @param {number} count
+       * @param {string} pdfSnippet
+       * @param {string} videoSummary
+       * @param {string} format
+       * @param {string} apiKey
+       * @returns {Promise<{ reviewerEntries: any[]; quizItems: any[]; }>}
+       */
+      const requestGeminiReviewer = async (topic, count, pdfSnippet, videoSummary, format, apiKey) => {
+        const response = await fetch(`${API_URL}?key=${encodeURIComponent(apiKey)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: buildPrompt(topic, count, pdfSnippet, videoSummary, format) }],
+              },
+            ],
+            safetySettings: [
+              { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+              { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+            ],
+          }),
+        });
 
-          if (!response.ok) {
-            const detail = await response.text();
-            throw new Error(`Gemini API error: ${response.status} ${detail}`);
-          }
+        if (!response.ok) {
+          const detail = await response.text();
+          throw new Error(`Gemini API error: ${response.status} ${detail}`);
+        }
 
-          const data = await response.json();
-          const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (!textResult) {
-            throw new Error('Gemini response was empty.');
-          }
-          return parseReviewerPayload(textResult);
-        };
+        const data = await response.json();
+        const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!textResult) {
+          throw new Error('Gemini response was empty.');
+        }
+        return parseReviewerPayload(textResult);
+      };
 
-        /**
-         * Extracts JSON payload from Gemini text output.
-         * @param {string} text
-         */
-        const parseReviewerPayload = (text) => {
-          const match = text.match(/```json\s*([\s\S]*?)```/i) || text.match(/```\s*([\s\S]*?)```/i);
-          if (!match) {
-            throw new Error('Gemini response missing JSON block.');
-          }
-          const payload = JSON.parse(match[1]);
-          if (!Array.isArray(payload.reviewerEntries) || payload.reviewerEntries.length === 0) {
-            throw new Error('Reviewer entries missing from Gemini response.');
-          }
-          if (!Array.isArray(payload.quizItems) || payload.quizItems.length === 0) {
-            throw new Error('Quiz items missing from Gemini response.');
-          }
-          return payload;
-        };
+      /**
+       * Extracts JSON payload from Gemini text output.
+       * @param {string} text
+       */
+      const parseReviewerPayload = (text) => {
+        const match = text.match(/```json\s*([\s\S]*?)```/i) || text.match(/```\s*([\s\S]*?)```/i);
+        if (!match) {
+          throw new Error('Gemini response missing JSON block.');
+        }
+        const payload = JSON.parse(match[1]);
+        if (!Array.isArray(payload.reviewerEntries) || payload.reviewerEntries.length === 0) {
+          throw new Error('Reviewer entries missing from Gemini response.');
+        }
+        if (!Array.isArray(payload.quizItems) || payload.quizItems.length === 0) {
+          throw new Error('Quiz items missing from Gemini response.');
+        }
+        return payload;
+      };
 
-        const setQuizMetaLabels = () => {
-          if (state.topic) {
-            quizTopicLabel.textContent = `Topic: ${state.topic}`;
-            quizTopicLabel.hidden = false;
-          } else {
-            quizTopicLabel.textContent = '';
-            quizTopicLabel.hidden = true;
-          }
+      const setQuizMetaLabels = () => {
+        if (state.topic) {
+          quizTopicLabel.textContent = `Topic: ${state.topic}`;
+          quizTopicLabel.hidden = false;
+        } else {
+          quizTopicLabel.textContent = '';
+          quizTopicLabel.hidden = true;
+        }
 
-          if (state.questionCount) {
-            quizCountLabel.textContent = `Questions prepared: ${state.questionCount}`;
-            quizCountLabel.hidden = false;
-          } else {
-            quizCountLabel.textContent = '';
-            quizCountLabel.hidden = true;
-          }
+        if (state.questionCount) {
+          quizCountLabel.textContent = `Questions prepared: ${state.questionCount}`;
+          quizCountLabel.hidden = false;
+        } else {
+          quizCountLabel.textContent = '';
+          quizCountLabel.hidden = true;
+        }
 
-          if (state.questionFormat === 'identification') {
-            quizFormatLabel.textContent = 'Format: Identification (typed answer)';
-            quizFormatLabel.hidden = false;
-          } else if (state.questionFormat === 'multiple-choice') {
-            quizFormatLabel.textContent = 'Format: Multiple choice';
-            quizFormatLabel.hidden = false;
-          } else {
-            quizFormatLabel.textContent = '';
-            quizFormatLabel.hidden = true;
-          }
-        };
+        if (state.questionFormat === 'identification') {
+          quizFormatLabel.textContent = 'Format: Identification (typed answer)';
+          quizFormatLabel.hidden = false;
+        } else if (state.questionFormat === 'multiple-choice') {
+          quizFormatLabel.textContent = 'Format: Multiple choice';
+          quizFormatLabel.hidden = false;
+        } else {
+          quizFormatLabel.textContent = '';
+          quizFormatLabel.hidden = true;
+        }
+      };
 
-        const buildCardMarkup = (entry, index) => {
-          const title = entry.term || `Item ${index + 1}`;
-          const definition = entry.definition || 'Definition unavailable.';
-          const keyTakeaway = entry.keyTakeaway ? `<p class="takeaway"><strong>Key takeaway:</strong> ${entry.keyTakeaway}</p>` : '';
-          const memoryHook = entry.memoryHook ? `<p class="memory"><strong>Memory hook:</strong> ${entry.memoryHook}</p>` : '';
-          return `<div class="card-header">
+      const buildCardMarkup = (entry, index) => {
+        const title = entry.term || `Item ${index + 1}`;
+        const definition = entry.definition || 'Definition unavailable.';
+        const keyTakeaway = entry.keyTakeaway ? `<p class="takeaway"><strong>Key takeaway:</strong> ${entry.keyTakeaway}</p>` : '';
+        const memoryHook = entry.memoryHook ? `<p class="memory"><strong>Memory hook:</strong> ${entry.memoryHook}</p>` : '';
+        return `<div class="card-header">
             <p class="card-index">${index + 1}</p>
             <h3>${title}</h3>
           </div>
           <p>${definition}</p>
           ${keyTakeaway}
           ${memoryHook}`;
-        };
+      };
 
-        const updateCardControls = () => {
-          const total = state.reviewerEntries.length;
-          const { currentCardIndex } = state;
-          reviewerCardPosition.textContent = `Card ${total ? currentCardIndex + 1 : 0} of ${total}`;
-          prevReviewerBtn.disabled = currentCardIndex <= 0;
-          nextReviewerBtn.disabled = total === 0 || currentCardIndex >= total - 1;
-        };
+      const updateCardControls = () => {
+        const total = state.reviewerEntries.length;
+        const { currentCardIndex } = state;
+        reviewerCardPosition.textContent = `Card ${total ? currentCardIndex + 1 : 0} of ${total}`;
+        prevReviewerBtn.disabled = currentCardIndex <= 0;
+        nextReviewerBtn.disabled = total === 0 || currentCardIndex >= total - 1;
+      };
 
-        const showReviewerCard = (index) => {
-          const total = state.reviewerEntries.length;
-          if (!total) {
-            reviewerActiveCard.innerHTML = '<p>No reviewer cards yet. Generate one to start studying.</p>';
-            reviewerCardContainer.hidden = true;
-            updateCardControls();
-            return;
-          }
-          const nextIndex = Math.min(Math.max(index, 0), total - 1);
-          state.currentCardIndex = nextIndex;
-          reviewerActiveCard.innerHTML = buildCardMarkup(state.reviewerEntries[nextIndex], nextIndex);
-          reviewerCardContainer.hidden = false;
-          updateCardControls();
-        };
-
-        /**
-         * Renders reviewer cards as an index-card slider.
-         * @param {{ term: string; definition: string; keyTakeaway?: string; memoryHook?: string; }[]} entries
-         * @param {{ focusButton?: boolean }} options
-         */
-        const renderReviewer = (entries, { focusButton = true } = {}) => {
-          state.currentCardIndex = 0;
-          reviewerSection.hidden = false;
-          quizCta.hidden = false;
-          showReviewerCard(0);
-          setQuizMetaLabels();
-          if (focusButton) {
-            takeQuizBtn.focus();
-          }
-        };
-
-        const hydrateFromStorage = () => {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (!raw) return;
-          try {
-            const saved = JSON.parse(raw);
-            if (!Array.isArray(saved.reviewerEntries) || !saved.reviewerEntries.length || !Array.isArray(saved.quizItems) || !saved.quizItems.length) {
-              localStorage.removeItem(STORAGE_KEY);
-              return;
-            }
-            state.reviewerEntries = saved.reviewerEntries;
-            state.quizItems = saved.quizItems;
-            state.topic = saved.topic || 'Custom topic';
-            state.questionCount = Number(saved.questionCount) || saved.quizItems.length;
-            state.questionFormat = saved.questionFormat || 'multiple-choice';
-            questionFormatSelect.value = state.questionFormat;
-            renderReviewer(saved.reviewerEntries, { focusButton: false });
-            updateStatus('Loaded your last reviewer. You can regenerate anytime.', 'info');
-          } catch (error) {
-            console.error('Failed to hydrate reviewer data', error);
-            localStorage.removeItem(STORAGE_KEY);
-          }
-        };
-
-        // Event Listeners
-        // Tab switching
-        textTabBtn.addEventListener('click', () => switchTab('text'));
-        pdfTabBtn.addEventListener('click', () => switchTab('pdf'));
-        videoTabBtn.addEventListener('click', () => switchTab('video'));
-
-        // PDF upload handlers
-        pdfPlaceholder.addEventListener('click', () => pdfInput.click());
-        pdfUploadArea.addEventListener('dragover', (e) => {
-          e.preventDefault();
-          pdfUploadArea.style.borderColor = '#8b7355';
-        });
-        pdfUploadArea.addEventListener('dragleave', () => {
-          pdfUploadArea.style.borderColor = '#eadfce';
-        });
-        pdfUploadArea.addEventListener('drop', async (e) => {
-          e.preventDefault();
-          pdfUploadArea.style.borderColor = '#eadfce';
-          const file = e.dataTransfer.files[0];
-          if (file && file.type === 'application/pdf') {
-            pdfInput.files = e.dataTransfer.files;
-            await handlePdfUpload(file);
-          }
-        });
-        pdfInput.addEventListener('change', async () => {
-          const file = pdfInput.files?.[0];
-          if (file) await handlePdfUpload(file);
-        });
-        removePdfBtn.addEventListener('click', clearPdfUpload);
-
-        // Video upload handlers
-        videoPlaceholder.addEventListener('click', () => videoInput.click());
-        videoUploadArea.addEventListener('dragover', (e) => {
-          e.preventDefault();
-          videoUploadArea.style.borderColor = '#8b7355';
-        });
-        videoUploadArea.addEventListener('dragleave', () => {
-          videoUploadArea.style.borderColor = '#eadfce';
-        });
-        videoUploadArea.addEventListener('drop', async (e) => {
-          e.preventDefault();
-          videoUploadArea.style.borderColor = '#eadfce';
-          const file = e.dataTransfer.files[0];
-          if (file && file.type.startsWith('video/')) {
-            videoInput.files = e.dataTransfer.files;
-            await handleVideoUpload(file);
-          }
-        });
-        videoInput.addEventListener('change', async () => {
-          const file = videoInput.files?.[0];
-          if (file) await handleVideoUpload(file);
-        });
-        removeVideoBtn.addEventListener('click', clearVideoUpload);
-
-        questionPreset.addEventListener('change', toggleCustomCount);
-        hydrateFromStorage();
-
-        generateBtn.addEventListener('click', async () => {
-          const typedTopic = topicInput.value.trim();
-          const pdfSnippet = state.usePdf && state.pdfText ? state.pdfText : '';
-          const selectedFormat = questionFormatSelect.value;
-
-          // Check if at least one input method is provided
-          if (!typedTopic && !pdfSnippet && !state.useVideo) {
-            updateStatus('Provide at least one input: text topic, PDF, or video.', 'error');
-            return;
-          }
-          if (!GEMINI_API_KEY?.trim()) {
-            updateStatus('Set your Gemini API key inside GEMINI_API_KEY before continuing.', 'error');
-            return;
-          }
-
-          let questionCount;
-          try {
-            questionCount = getQuestionCount();
-          } catch (error) {
-            updateStatus(error.message, 'error');
-            return;
-          }
-
-          generateBtn.disabled = true;
-          resetBtn.disabled = true;
-
-          try {
-            // Analyze video if uploaded
-            let videoSummary = '';
-            if (state.useVideo && state.videoFile) {
-              videoSummary = await analyzeVideoWithGemini(state.videoFile, GEMINI_API_KEY);
-              state.videoSummary = videoSummary;
-            }
-
-            // Build working message
-            const sources = [];
-            if (typedTopic) sources.push('topic');
-            if (pdfSnippet) sources.push('PDF');
-            if (videoSummary) sources.push('video');
-            const workingMessage = sources.length > 0
-              ? `Gemini is analyzing your ${sources.join(' + ')} and building reviewer cards...`
-              : 'Contacting Gemini to craft your reviewer...';
-            updateStatus(workingMessage, 'info');
-
-            const payload = await requestGeminiReviewer(typedTopic, questionCount, pdfSnippet, videoSummary, selectedFormat, GEMINI_API_KEY);
-            state.reviewerEntries = payload.reviewerEntries;
-            state.quizItems = payload.quizItems;
-
-            // Determine topic label
-            if (state.useVideo && state.videoMeta) {
-              state.topic = `Video: ${state.videoMeta.name}`;
-            } else if (pdfSnippet && state.pdfMeta) {
-              state.topic = `Notes from ${state.pdfMeta.name}`;
-            } else if (pdfSnippet) {
-              state.topic = 'PDF-based reviewer';
-            } else {
-              state.topic = typedTopic || 'Custom topic';
-            }
-
-            state.questionCount = questionCount;
-            state.questionFormat = selectedFormat;
-            renderReviewer(payload.reviewerEntries);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({
-              topic: state.topic,
-              generatedAt: new Date().toISOString(),
-              questionCount,
-              questionFormat: selectedFormat,
-              reviewerEntries: payload.reviewerEntries,
-              quizItems: payload.quizItems,
-            }));
-
-            const successMessage = sources.length > 1
-              ? `${sources.join(' + ')} processed! Review the AI-generated cards, then take the quiz.`
-              : 'Reviewer and quiz ready. Study first, then take the quiz!';
-            updateStatus(successMessage, 'success');
-            reviewerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          } catch (error) {
-            console.error(error);
-            updateStatus(error.message, 'error');
-          } finally {
-            generateBtn.disabled = false;
-            resetBtn.disabled = false;
-          }
-        });
-
-        resetBtn.addEventListener('click', () => {
-          topicInput.value = '';
-          questionPreset.value = '10';
-          toggleCustomCount();
-          questionFormatSelect.value = 'multiple-choice';
-          clearPdfUpload();
-          clearVideoUpload();
-          reviewerSection.hidden = true;
+      const showReviewerCard = (index) => {
+        const total = state.reviewerEntries.length;
+        if (!total) {
+          reviewerActiveCard.innerHTML = '<p>No reviewer cards yet. Generate one to start studying.</p>';
           reviewerCardContainer.hidden = true;
-          reviewerActiveCard.innerHTML = '';
-          reviewerCardPosition.textContent = 'Card 0 of 0';
-          quizCta.hidden = true;
-          state.reviewerEntries = [];
-          state.quizItems = [];
-          state.currentCardIndex = 0;
-          state.topic = '';
-          state.questionCount = 0;
-          state.questionFormat = 'multiple-choice';
-          setQuizMetaLabels();
-          localStorage.removeItem(STORAGE_KEY);
-          updateStatus('Cleared inputs. Describe a fresh topic to begin again.', 'info');
-        });
+          updateCardControls();
+          return;
+        }
+        const nextIndex = Math.min(Math.max(index, 0), total - 1);
+        state.currentCardIndex = nextIndex;
+        reviewerActiveCard.innerHTML = buildCardMarkup(state.reviewerEntries[nextIndex], nextIndex);
+        reviewerCardContainer.hidden = false;
+        updateCardControls();
+      };
 
-        prevReviewerBtn.addEventListener('click', () => {
-          if (state.currentCardIndex > 0) {
-            showReviewerCard(state.currentCardIndex - 1);
-          }
-        });
+      /**
+       * Renders reviewer cards as an index-card slider.
+       * @param {{ term: string; definition: string; keyTakeaway?: string; memoryHook?: string; }[]} entries
+       * @param {{ focusButton?: boolean }} options
+       */
+      const renderReviewer = (entries, { focusButton = true } = {}) => {
+        state.currentCardIndex = 0;
+        reviewerSection.hidden = false;
+        quizCta.hidden = false;
+        showReviewerCard(0);
+        setQuizMetaLabels();
+        if (focusButton) {
+          takeQuizBtn.focus();
+        }
+      };
 
-        nextReviewerBtn.addEventListener('click', () => {
-          if (state.currentCardIndex < state.reviewerEntries.length - 1) {
-            showReviewerCard(state.currentCardIndex + 1);
-          }
-        });
-
-        takeQuizBtn.addEventListener('click', () => {
-          if (!state.quizItems.length) {
-            updateStatus('Generate a reviewer first so the quiz has data to work with.', 'error');
+      const hydrateFromStorage = () => {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        try {
+          const saved = JSON.parse(raw);
+          if (!Array.isArray(saved.reviewerEntries) || !saved.reviewerEntries.length || !Array.isArray(saved.quizItems) || !saved.quizItems.length) {
+            localStorage.removeItem(STORAGE_KEY);
             return;
           }
-          window.location.href = 'reviewer-quiz.html';
-        });
+          state.reviewerEntries = saved.reviewerEntries;
+          state.quizItems = saved.quizItems;
+          state.topic = saved.topic || 'Custom topic';
+          state.questionCount = Number(saved.questionCount) || saved.quizItems.length;
+          state.questionFormat = saved.questionFormat || 'multiple-choice';
+          questionFormatSelect.value = state.questionFormat;
+          renderReviewer(saved.reviewerEntries, { focusButton: false });
+          updateStatus('Loaded your last reviewer. You can regenerate anytime.', 'info');
+        } catch (error) {
+          console.error('Failed to hydrate reviewer data', error);
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      };
 
-        pdfInput.addEventListener('change', handlePdfChange);
-        clearPdfBtn.addEventListener('click', () => {
-          clearPdfSelection();
-          setPdfStatus('Removed the PDF. Only your typed topic will be sent to Gemini.', { tone: 'info', hasFile: false });
-        });
-      })();
-    });
-  </script>
+      // Event Listeners
+      // Tab switching
+      textTabBtn.addEventListener('click', () => switchTab('text'));
+      pdfTabBtn.addEventListener('click', () => switchTab('pdf'));
+      videoTabBtn.addEventListener('click', () => switchTab('video'));
+
+      // PDF upload handlers
+      pdfPlaceholder.addEventListener('click', () => pdfInput.click());
+      pdfUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        pdfUploadArea.style.borderColor = '#8b7355';
+      });
+      pdfUploadArea.addEventListener('dragleave', () => {
+        pdfUploadArea.style.borderColor = '#eadfce';
+      });
+      pdfUploadArea.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        pdfUploadArea.style.borderColor = '#eadfce';
+        const file = e.dataTransfer.files[0];
+        if (file && file.type === 'application/pdf') {
+          pdfInput.files = e.dataTransfer.files;
+          await handlePdfUpload(file);
+        }
+      });
+      pdfInput.addEventListener('change', async () => {
+        const file = pdfInput.files?.[0];
+        if (file) await handlePdfUpload(file);
+      });
+      removePdfBtn.addEventListener('click', clearPdfUpload);
+
+      // Video upload handlers
+      videoPlaceholder.addEventListener('click', () => videoInput.click());
+      videoUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        videoUploadArea.style.borderColor = '#8b7355';
+      });
+      videoUploadArea.addEventListener('dragleave', () => {
+        videoUploadArea.style.borderColor = '#eadfce';
+      });
+      videoUploadArea.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        videoUploadArea.style.borderColor = '#eadfce';
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('video/')) {
+          videoInput.files = e.dataTransfer.files;
+          await handleVideoUpload(file);
+        }
+      });
+      videoInput.addEventListener('change', async () => {
+        const file = videoInput.files?.[0];
+        if (file) await handleVideoUpload(file);
+      });
+      removeVideoBtn.addEventListener('click', clearVideoUpload);
+
+      questionPreset.addEventListener('change', toggleCustomCount);
+      hydrateFromStorage();
+
+      generateBtn.addEventListener('click', async () => {
+        const typedTopic = topicInput.value.trim();
+        const pdfSnippet = state.usePdf && state.pdfText ? state.pdfText : '';
+        const selectedFormat = questionFormatSelect.value;
+
+        // Check if at least one input method is provided
+        if (!typedTopic && !pdfSnippet && !state.useVideo) {
+          updateStatus('Provide at least one input: text topic, PDF, or video.', 'error');
+          return;
+        }
+        if (!GEMINI_API_KEY?.trim()) {
+          updateStatus('Set your Gemini API key inside GEMINI_API_KEY before continuing.', 'error');
+          return;
+        }
+
+        let questionCount;
+        try {
+          questionCount = getQuestionCount();
+        } catch (error) {
+          updateStatus(error.message, 'error');
+          return;
+        }
+
+        generateBtn.disabled = true;
+        resetBtn.disabled = true;
+
+        try {
+          // Analyze video if uploaded
+          let videoSummary = '';
+          if (state.useVideo && state.videoFile) {
+            videoSummary = await analyzeVideoWithGemini(state.videoFile, GEMINI_API_KEY);
+            state.videoSummary = videoSummary;
+          }
+
+          // Build working message
+          const sources = [];
+          if (typedTopic) sources.push('topic');
+          if (pdfSnippet) sources.push('PDF');
+          if (videoSummary) sources.push('video');
+          const workingMessage = sources.length > 0
+            ? `Gemini is analyzing your ${sources.join(' + ')} and building reviewer cards...`
+            : 'Contacting Gemini to craft your reviewer...';
+          updateStatus(workingMessage, 'info');
+
+          const payload = await requestGeminiReviewer(typedTopic, questionCount, pdfSnippet, videoSummary, selectedFormat, GEMINI_API_KEY);
+          state.reviewerEntries = payload.reviewerEntries;
+          state.quizItems = payload.quizItems;
+
+          // Determine topic label
+          if (state.useVideo && state.videoMeta) {
+            state.topic = `Video: ${state.videoMeta.name}`;
+          } else if (pdfSnippet && state.pdfMeta) {
+            state.topic = `Notes from ${state.pdfMeta.name}`;
+          } else if (pdfSnippet) {
+            state.topic = 'PDF-based reviewer';
+          } else {
+            state.topic = typedTopic || 'Custom topic';
+          }
+
+          state.questionCount = questionCount;
+          state.questionFormat = selectedFormat;
+          renderReviewer(payload.reviewerEntries);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            topic: state.topic,
+            generatedAt: new Date().toISOString(),
+            questionCount,
+            questionFormat: selectedFormat,
+            reviewerEntries: payload.reviewerEntries,
+            quizItems: payload.quizItems,
+          }));
+
+          const successMessage = sources.length > 1
+            ? `${sources.join(' + ')} processed! Review the AI-generated cards, then take the quiz.`
+            : 'Reviewer and quiz ready. Study first, then take the quiz!';
+          updateStatus(successMessage, 'success');
+          reviewerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (error) {
+          console.error(error);
+          updateStatus(error.message, 'error');
+        } finally {
+          generateBtn.disabled = false;
+          resetBtn.disabled = false;
+        }
+      });
+
+      resetBtn.addEventListener('click', () => {
+        topicInput.value = '';
+        questionPreset.value = '10';
+        toggleCustomCount();
+        questionFormatSelect.value = 'multiple-choice';
+        clearPdfUpload();
+        clearVideoUpload();
+        reviewerSection.hidden = true;
+        reviewerCardContainer.hidden = true;
+        reviewerActiveCard.innerHTML = '';
+        reviewerCardPosition.textContent = 'Card 0 of 0';
+        quizCta.hidden = true;
+        state.reviewerEntries = [];
+        state.quizItems = [];
+        state.currentCardIndex = 0;
+        state.topic = '';
+        state.questionCount = 0;
+        state.questionFormat = 'multiple-choice';
+        setQuizMetaLabels();
+        localStorage.removeItem(STORAGE_KEY);
+        updateStatus('Cleared inputs. Describe a fresh topic to begin again.', 'info');
+      });
+
+      prevReviewerBtn.addEventListener('click', () => {
+        if (state.currentCardIndex > 0) {
+          showReviewerCard(state.currentCardIndex - 1);
+        }
+      });
+
+      nextReviewerBtn.addEventListener('click', () => {
+        if (state.currentCardIndex < state.reviewerEntries.length - 1) {
+          showReviewerCard(state.currentCardIndex + 1);
+        }
+      });
+
+      takeQuizBtn.addEventListener('click', () => {
+        if (!state.quizItems.length) {
+          updateStatus('Generate a reviewer first so the quiz has data to work with.', 'error');
+          return;
+        }
+        window.location.href = 'reviewer-quiz.html';
+      });
+
+      pdfInput.addEventListener('change', handlePdfChange);
+      clearPdfBtn.addEventListener('click', () => {
+        clearPdfSelection();
+        setPdfStatus('Removed the PDF. Only your typed topic will be sent to Gemini.', { tone: 'info', hasFile: false });
+      });
+    })();
+  });
+</script>
 </body>
 
 </html>
