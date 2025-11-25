@@ -20,8 +20,6 @@ async function build() {
             '@nestjs/microservices',
             '@nestjs/websockets',
             'cache-manager',
-            'class-transformer',
-            'class-validator',
         ],
         minify: true,
     });

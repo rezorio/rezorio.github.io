@@ -5,8 +5,15 @@
 The NestJS backend is ready:
 - API endpoints: `/api/generate-reviewer`, `/api/analyze-video`
 - Dependencies installed (366 packages)
-- Netlify configuration created
-- Build scripts configured
+- Netlify configuration## Troubleshooting
+
+### ✅ Fixed: class-validator Error
+
+**Error**: `Cannot find module 'class-validator'`
+
+**Solution**: Already fixed! The build script now bundles `class-validator` and `class-transformer` instead of excluding them. These packages are also added to `package.json`.
+
+### Build Failscripts configured
 
 ## 📝 Frontend Changes Needed
 
