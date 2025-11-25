@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,13 +8,15 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
+
 <body class="apps-page reviewer-quiz-page">
   <a href="apps.html" class="apps-button">Apps</a>
   <a href="reviewer.html" class="apps-button back-button">Reviewer</a>
 
   <div class="container reviewer-container">
     <h1>Quiz Session</h1>
-    <p class="apps-intro">Answer the shuffled questions for your latest topic. When you finish, we will show your score and let you retake the quiz instantly.</p>
+    <p class="apps-intro">Answer the shuffled questions for your latest topic. When you finish, we will show your score
+      and let you retake the quiz instantly.</p>
 
     <div class="quiz-status" id="statusBox" role="status" aria-live="polite">
       <strong><i class="fas fa-info-circle"></i>&nbsp;Loading</strong>
@@ -31,7 +34,9 @@
         <div class="quiz-question" id="questionText">Loading…</div>
         <p class="quiz-mode-note" id="modeNote" hidden>Loading quiz mode…</p>
         <div class="quiz-choices" id="choicesList" role="group" aria-live="polite"></div>
-        <div class="quiz-buttons" id="questionButtons"></div>
+        <div class="quiz-buttons" id="questionButtons">
+          <button id="nextQuestionBtn" type="button" disabled>Next question</button>
+        </div>
       </div>
     </section>
 
@@ -148,7 +153,7 @@
         answerInput.disabled = true;
         submitBtn.disabled = true;
         state.userAnswers[state.index] = userValue;
-        
+
         // Move to next question automatically for identification
         state.index += 1;
         renderQuestion();
@@ -270,7 +275,7 @@
           choicesList.querySelectorAll('.choice-btn').forEach((button) => {
             button.addEventListener('click', () => handleChoice(button));
           });
-          
+
           nextQuestionBtn.textContent = state.index === state.order.length - 1 ? 'Finish quiz' : 'Next question';
         }
       };
@@ -279,7 +284,7 @@
         // Store the user's answer
         const isCorrect = button.dataset.correct === 'true';
         state.userAnswers[state.index] = isCorrect;
-        
+
         // Disable all buttons and highlight selected
         choicesList.querySelectorAll('.choice-btn').forEach((choiceBtn) => {
           choiceBtn.disabled = true;
@@ -297,7 +302,7 @@
         state.userAnswers.forEach((answer, idx) => {
           const questionData = state.quizItems[state.order[idx]];
           const questionType = (questionData.questionType || state.questionFormat || 'multiple-choice').toLowerCase();
-          
+
           if (questionType === 'identification') {
             const { isCorrect } = evaluateIdentificationAnswer(answer, questionData);
             if (isCorrect) state.score += 1;
@@ -309,16 +314,16 @@
 
         const ratio = state.score / state.order.length;
         const percentage = Math.round(ratio * 100);
-        
+
         // Show popup with results
         const encouragement = ratio === 1
           ? 'Perfect score! 🎉'
           : ratio >= 0.7
             ? 'Great job! 👏'
             : 'Keep practicing! 💪';
-        
+
         alert(`Quiz Complete!\\n\\n${encouragement}\\n\\nYour Score: ${state.score} / ${state.order.length} (${percentage}%)`);
-        
+
         // Show results section
         quizSection.hidden = true;
         resultsSection.hidden = false;
@@ -372,4 +377,5 @@
     })();
   </script>
 </body>
+
 </html>
