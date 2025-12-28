@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Cost Checker - Calculate Work Hours to Afford Items</title>
+    <meta name="description" content="Calculate how many hours you need to work to afford any item based on your monthly income and work hours.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Variables - Matching existing design system */
+        :root {
+            --bg: #faf7f2;
+            --panel: #fffaf3;
+            --text: #3b2f2f;
+            --muted: #8b6f61;
+            --border: #e7ddd2;
+            --primary: #6b4423;
+            --primary-600: #5a3920;
+            --success: #2f855a;
+            --danger: #b91c1c;
+            --warning: #d4a373;
+            --radius: 12px;
+            --shadow: 0 10px 25px rgba(59, 47, 47, 0.08);
+            --shadow-sm: 0 2px 8px rgba(59, 47, 47, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(180deg, #faf7f2 0%, #f5efe6 100%);
+            color: var(--text);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 32px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--text);
+            margin-bottom: 8px;
+            font-size: 1.75rem;
+            font-weight: 700;
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        input[type="number"] {
+            width: 100%;
+            background: #fff;
+            border: 1px solid var(--border);
+            padding: 12px 14px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: var(--text);
+            outline: none;
+            border-radius: 10px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(107, 68, 35, 0.1);
+        }
+
+        /* Remove number input arrows */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        .input-hint {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        button {
+            background: var(--primary);
+            color: #fff;
+            border: 1px solid var(--primary);
+            padding: 12px 16px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 10px;
+            box-shadow: 0 6px 14px rgba(107, 68, 35, 0.25);
+            transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease;
+        }
+
+        button:hover {
+            background: var(--primary-600);
+        }
+
+        button:active {
+            transform: translateY(1px);
+            box-shadow: none;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            background: #f1f5f9;
+            color: var(--text);
+            border-color: var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-clear:hover {
+            background: #e2e8f0;
+        }
+
+        /* Results Section */
+        .results {
+            display: none;
+            margin-top: 32px;
+            padding-top: 32px;
+            border-top: 2px solid var(--border);
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .time-badge {
+            background: linear-gradient(135deg, #6b4423 0%, #8b5a3c 100%);
+            color: #fff;
+            padding: 24px;
+            border-radius: var(--radius);
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(107, 68, 35, 0.3);
+        }
+
+        .time-badge-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .time-badge-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            font-family: 'Playfair Display', Georgia, serif;
+            line-height: 1.2;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: #fff7ed;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .container {
+                padding: 24px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .time-badge-value {
+                font-size: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Error State */
+        .error {
+            border-color: var(--danger) !important;
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⏰ Time Cost Checker</h1>
+        <p class="subtitle">Calculate how many hours you need to work to afford any item</p>
+
+        <form id="timeCostForm">
+            <div class="form-group">
+                <label for="monthlyIncome">Monthly Income (₱)</label>
+                <input 
+                    type="number" 
+                    id="monthlyIncome" 
+                    placeholder="e.g., 25000"
+                    min="0.01"
+                    step="0.01"
+                    required
+                >
+                <div class="input-hint">Your total monthly income in Philippine Pesos</div>
+                <div class="error-message" id="incomeError">Please enter a valid income greater than zero</div>
+            </div>
+
+            <div class="form-group">
+                <label for="workHours">Monthly Work Hours</label>
+                <input 
+                    type="number" 
+                    id="workHours" 
+                    placeholder="160"
+                    value="160"
+                    min="1"
+                    step="1"
+                    required
+                >
+                <div class="input-hint">Default: 160 hours (8 hours/day × 20 days)</div>
+                <div class="error-message" id="hoursError">Please enter valid work hours greater than zero</div>
+            </div>
+
+            <div class="form-group">
+                <label for="itemPrice">Item Price (₱)</label>
+                <input 
+                    type="number" 
+                    id="itemPrice" 
+                    placeholder="e.g., 5000"
+                    min="0.01"
+                    step="0.01"
+                    required
+                >
+                <div class="input-hint">Price of the item you want to purchase</div>
+                <div class="error-message" id="priceError">Please enter a valid price greater than zero</div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" id="calculateBtn">Calculate</button>
+                <button type="button" class="btn-clear" id="clearBtn">Clear All</button>
+            </div>
+        </form>
+
+        <div class="results" id="results">
+            <div class="time-badge">
+                <div class="time-badge-label">Time to Afford This Item</div>
+                <div class="time-badge-value" id="timeCost">0 hours</div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Hourly Rate</div>
+                    <div class="stat-value" id="hourlyRate">₱0.00</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Daily Rate</div>
+                    <div class="stat-value" id="dailyRate">₱0.00</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Days Needed</div>
+                    <div class="stat-value" id="daysNeeded">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">% of Income</div>
+                    <div class="stat-value" id="percentIncome">0%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Time Cost Checker Application
+         * Calculates work hours needed to afford items based on income
+         */
+
+        // Constants
+        const STORAGE_KEYS = {
+            MONTHLY_INCOME: 'timeCostChecker_monthlyIncome',
+            WORK_HOURS: 'timeCostChecker_workHours'
+        };
+
+        const HOURS_PER_DAY = 8;
+
+        // DOM Elements
+        const form = document.getElementById('timeCostForm');
+        const monthlyIncomeInput = document.getElementById('monthlyIncome');
+        const workHoursInput = document.getElementById('workHours');
+        const itemPriceInput = document.getElementById('itemPrice');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const results = document.getElementById('results');
+
+        // Result Elements
+        const timeCostEl = document.getElementById('timeCost');
+        const hourlyRateEl = document.getElementById('hourlyRate');
+        const dailyRateEl = document.getElementById('dailyRate');
+        const daysNeededEl = document.getElementById('daysNeeded');
+        const percentIncomeEl = document.getElementById('percentIncome');
+
+        // Error Elements
+        const incomeError = document.getElementById('incomeError');
+        const hoursError = document.getElementById('hoursError');
+        const priceError = document.getElementById('priceError');
+
+        /**
+         * Initialize the application
+         */
+        function init() {
+            loadSavedData();
+            attachEventListeners();
+        }
+
+        /**
+         * Load saved data from localStorage
+         */
+        function loadSavedData() {
+            const savedIncome = localStorage.getItem(STORAGE_KEYS.MONTHLY_INCOME);
+            const savedHours = localStorage.getItem(STORAGE_KEYS.WORK_HOURS);
+
+            if (savedIncome) {
+                monthlyIncomeInput.value = savedIncome;
+            }
+
+            if (savedHours) {
+                workHoursInput.value = savedHours;
+            }
+        }
+
+        /**
+         * Save data to localStorage
+         */
+        function saveData() {
+            localStorage.setItem(STORAGE_KEYS.MONTHLY_INCOME, monthlyIncomeInput.value);
+            localStorage.setItem(STORAGE_KEYS.WORK_HOURS, workHoursInput.value);
+        }
+
+        /**
+         * Clear all data from localStorage and form
+         */
+        function clearAllData() {
+            // Clear localStorage
+            localStorage.removeItem(STORAGE_KEYS.MONTHLY_INCOME);
+            localStorage.removeItem(STORAGE_KEYS.WORK_HOURS);
+
+            // Reset form
+            form.reset();
+            workHoursInput.value = '160'; // Reset to default
+
+            // Hide results
+            results.classList.remove('show');
+
+            // Clear errors
+            clearErrors();
+        }
+
+        /**
+         * Attach event listeners
+         */
+        function attachEventListeners() {
+            form.addEventListener('submit', handleSubmit);
+            clearBtn.addEventListener('click', clearAllData);
+
+            // Save income and work hours when they change
+            monthlyIncomeInput.addEventListener('change', saveData);
+            workHoursInput.addEventListener('change', saveData);
+
+            // Clear errors on input
+            monthlyIncomeInput.addEventListener('input', () => clearError(monthlyIncomeInput, incomeError));
+            workHoursInput.addEventListener('input', () => clearError(workHoursInput, hoursError));
+            itemPriceInput.addEventListener('input', () => clearError(itemPriceInput, priceError));
+        }
+
+        /**
+         * Clear error state for an input
+         * @param {HTMLInputElement} input - Input element
+         * @param {HTMLElement} errorEl - Error message element
+         */
+        function clearError(input, errorEl) {
+            input.classList.remove('error');
+            errorEl.classList.remove('show');
+        }
+
+        /**
+         * Show error state for an input
+         * @param {HTMLInputElement} input - Input element
+         * @param {HTMLElement} errorEl - Error message element
+         */
+        function showError(input, errorEl) {
+            input.classList.add('error');
+            errorEl.classList.add('show');
+        }
+
+        /**
+         * Clear all errors
+         */
+        function clearErrors() {
+            clearError(monthlyIncomeInput, incomeError);
+            clearError(workHoursInput, hoursError);
+            clearError(itemPriceInput, priceError);
+        }
+
+        /**
+         * Validate form inputs
+         * @returns {boolean} True if valid, false otherwise
+         */
+        function validateInputs() {
+            clearErrors();
+            let isValid = true;
+
+            const income = parseFloat(monthlyIncomeInput.value);
+            const hours = parseFloat(workHoursInput.value);
+            const price = parseFloat(itemPriceInput.value);
+
+            if (isNaN(income) || income <= 0) {
+                showError(monthlyIncomeInput, incomeError);
+                isValid = false;
+            }
+
+            if (isNaN(hours) || hours <= 0) {
+                showError(workHoursInput, hoursError);
+                isValid = false;
+            }
+
+            if (isNaN(price) || price <= 0) {
+                showError(itemPriceInput, priceError);
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        /**
+         * Format number as Philippine Peso currency
+         * @param {number} amount - Amount to format
+         * @returns {string} Formatted currency string
+         */
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-PH', {
+                style: 'currency',
+                currency: 'PHP',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
+        }
+
+        /**
+         * Format time in human-readable format
+         * @param {number} totalHours - Total hours
+         * @returns {string} Formatted time string
+         */
+        function formatTime(totalHours) {
+            if (totalHours < 1) {
+                const minutes = Math.round(totalHours * 60);
+                return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+            }
+
+            const hours = Math.floor(totalHours);
+            const minutes = Math.round((totalHours - hours) * 60);
+
+            if (minutes === 0) {
+                return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
+            }
+
+            return `${hours} ${hours === 1 ? 'hour' : 'hours'} and ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+        }
+
+        /**
+         * Calculate time cost and related statistics
+         * @param {number} monthlyIncome - Monthly income
+         * @param {number} workHours - Monthly work hours
+         * @param {number} itemPrice - Item price
+         * @returns {Object} Calculation results
+         */
+        function calculateTimeCost(monthlyIncome, workHours, itemPrice) {
+            const hourlyRate = monthlyIncome / workHours;
+            const dailyRate = hourlyRate * HOURS_PER_DAY;
+            const hoursNeeded = itemPrice / hourlyRate;
+            const daysNeeded = hoursNeeded / HOURS_PER_DAY;
+            const percentOfIncome = (itemPrice / monthlyIncome) * 100;
+
+            return {
+                hourlyRate,
+                dailyRate,
+                hoursNeeded,
+                daysNeeded,
+                percentOfIncome
+            };
+        }
+
+        /**
+         * Display calculation results
+         * @param {Object} calculationData - Calculation results
+         */
+        function displayResults(calculationData) {
+            const { hourlyRate, dailyRate, hoursNeeded, daysNeeded, percentOfIncome } = calculationData;
+
+            // Main time cost
+            timeCostEl.textContent = formatTime(hoursNeeded);
+
+            // Statistics
+            hourlyRateEl.textContent = formatCurrency(hourlyRate);
+            dailyRateEl.textContent = formatCurrency(dailyRate);
+            daysNeededEl.textContent = daysNeeded < 1 
+                ? '< 1 day' 
+                : daysNeeded.toFixed(1);
+            percentIncomeEl.textContent = `${percentOfIncome.toFixed(1)}%`;
+
+            // Show results
+            results.classList.add('show');
+        }
+
+        /**
+         * Handle form submission
+         * @param {Event} e - Form submit event
+         */
+        function handleSubmit(e) {
+            e.preventDefault();
+
+            // Validate inputs
+            if (!validateInputs()) {
+                return;
+            }
+
+            // Get input values
+            const monthlyIncome = parseFloat(monthlyIncomeInput.value);
+            const workHours = parseFloat(workHoursInput.value);
+            const itemPrice = parseFloat(itemPriceInput.value);
+
+            // Save data to localStorage
+            saveData();
+
+            // Calculate results
+            const calculationResults = calculateTimeCost(monthlyIncome, workHours, itemPrice);
+
+            // Display results
+            displayResults(calculationResults);
+        }
+
+        // Initialize the application
+        init();
+    </script>
+</body>
+</html>
